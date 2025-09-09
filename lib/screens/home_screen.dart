@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/quick_action.dart';
+import '../widgets/progress_chart.dart'; // 👈 new import
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback? onStart;
@@ -16,6 +17,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Greeting + avatar
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -60,6 +62,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
+            // CTA Button
             ElevatedButton.icon(
               onPressed: onStart,
               icon: const Icon(Icons.play_circle_fill),
@@ -80,6 +83,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 18),
 
+            // Quick Actions
             Row(
               children: const [
                 Expanded(
@@ -94,6 +98,12 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+
+            // Progress Chart 👇
+            Text('Progress Overview', style: theme.textTheme.titleLarge),
+            const SizedBox(height: 12),
+            const ProgressChart(),
           ],
         ),
       ),

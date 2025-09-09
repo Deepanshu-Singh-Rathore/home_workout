@@ -57,6 +57,7 @@ class _MyAppState extends State<MyApp> {
     ];
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Home Workout UI',
       theme: AppTheme.darkTheme,
       home: Scaffold(
