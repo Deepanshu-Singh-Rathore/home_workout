@@ -9,11 +9,11 @@ class WorkoutDetailScreen extends StatefulWidget {
   final bool added;
 
   const WorkoutDetailScreen({
-    Key? key,
+    super.key,
     required this.workout,
     this.onAdd,
     this.added = false,
-  }) : super(key: key);
+  });
 
   @override
   State<WorkoutDetailScreen> createState() => _WorkoutDetailScreenState();
@@ -27,12 +27,13 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   void initState() {
     super.initState();
     if (widget.workout.videoUrl.isNotEmpty) {
-      _controller = VideoPlayerController.network(widget.workout.videoUrl)
-        ..setLooping(true)
-        ..initialize().then((_) {
-          setState(() => _initialized = true);
-          _controller?.play();
-        });
+      _controller =
+          VideoPlayerController.networkUrl(Uri.parse(widget.workout.videoUrl))
+            ..setLooping(true)
+            ..initialize().then((_) {
+              setState(() => _initialized = true);
+              _controller?.play();
+            });
     }
   }
 
@@ -88,7 +89,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              "This is a sample description for the workout. You can replace it later with real instructions, benefits, and steps for the exercise.",
+              "This is a sample workout description with instructions, benefits, and steps. Replace with real content.",
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),

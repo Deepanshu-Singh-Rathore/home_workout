@@ -10,11 +10,11 @@ class WorkoutCard extends StatefulWidget {
   final bool added;
 
   const WorkoutCard({
-    Key? key,
+    super.key,
     required this.workout,
     this.onAdd,
     this.added = false,
-  }) : super(key: key);
+  });
 
   @override
   State<WorkoutCard> createState() => _WorkoutCardState();
@@ -28,13 +28,14 @@ class _WorkoutCardState extends State<WorkoutCard> {
   void initState() {
     super.initState();
     if (widget.workout.videoUrl.isNotEmpty) {
-      _controller = VideoPlayerController.network(widget.workout.videoUrl)
-        ..setLooping(true)
-        ..setVolume(0.0)
-        ..initialize().then((_) {
-          setState(() => _initialized = true);
-          _controller?.play();
-        });
+      _controller =
+          VideoPlayerController.networkUrl(Uri.parse(widget.workout.videoUrl))
+            ..setLooping(true)
+            ..setVolume(0.0)
+            ..initialize().then((_) {
+              setState(() => _initialized = true);
+              _controller?.play();
+            });
     }
   }
 
@@ -53,6 +54,8 @@ class _WorkoutCardState extends State<WorkoutCard> {
           onAdd: widget.onAdd,
           added: widget.added,
         ),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }

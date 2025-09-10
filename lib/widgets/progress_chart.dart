@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
 
 class ProgressChart extends StatelessWidget {
-  const ProgressChart({Key? key}) : super(key: key);
+  const ProgressChart({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class ProgressChart extends StatelessWidget {
               barWidth: 3,
               belowBarData: BarAreaData(
                 show: true,
-                color: AppTheme.kAccentColor.withOpacity(0.2),
+                color: AppTheme.kAccentColor.withAlpha((0.2 * 255).round()),
               ),
               dotData: FlDotData(show: false),
             ),

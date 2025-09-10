@@ -14,16 +14,12 @@ class AppTheme {
     cardColor: kCardColor,
     textTheme: const TextTheme(
       headlineSmall: TextStyle(
-        // Changed from headline6 to headlineSmall
         color: kTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),
       bodyMedium: TextStyle(color: kTextPrimary, fontSize: 16),
-      titleMedium: TextStyle(
-        color: kTextSecondary,
-        fontSize: 14,
-      ), // Kept titleMedium
+      titleMedium: TextStyle(color: kTextSecondary, fontSize: 14),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
