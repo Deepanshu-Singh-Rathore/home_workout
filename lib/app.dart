@@ -6,14 +6,14 @@ import 'models/playlist.dart';
 import 'screens/search_screen.dart';
 import 'screens/plan_screen.dart';
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+class MainApp extends StatefulWidget {
+  const MainApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<MainApp> createState() => _MainAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
 
   final List<Workout> sampleWorkouts = [
@@ -168,3 +168,4 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
