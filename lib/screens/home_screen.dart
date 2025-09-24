@@ -5,15 +5,11 @@ import '../config/app_theme.dart';
 class HomeScreen extends StatefulWidget {
   final VoidCallback onStartSearch;
   final VoidCallback onStartPlan;
-  final bool isDarkMode;
-  final ValueChanged<bool> onThemeChanged;
 
   const HomeScreen({
     super.key,
     required this.onStartSearch,
     required this.onStartPlan,
-    required this.isDarkMode,
-    required this.onThemeChanged,
   });
 
   @override

@@ -5,8 +5,7 @@ class PlanScreen extends StatefulWidget {
   final List<Workout> plan;
   final void Function(String) onRemove;
 
-  const PlanScreen({Key? key, required this.plan, required this.onRemove})
-    : super(key: key);
+  const PlanScreen({super.key, required this.plan, required this.onRemove});
 
   @override
   State<PlanScreen> createState() => _PlanScreenState();
@@ -102,10 +101,7 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -264,7 +260,7 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
                   Expanded(
                     child: _buildQuickStat(
                       'Total Time',
-                      '${_totalDuration} min',
+                      '$_totalDuration min',
                       Icons.timer_rounded,
                       theme.colorScheme.primary,
                       theme,
