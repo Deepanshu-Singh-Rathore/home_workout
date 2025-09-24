@@ -1,6 +1,7 @@
+/*
 // TODO Implement this library.
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:google_sign_in/google_sign_in.dart';
 
 class GoogleSignInService {
   static final _googleSignIn = GoogleSignIn();
@@ -30,3 +31,4 @@ class GoogleSignInService {
     await _auth.signOut();
   }
 }
+*/

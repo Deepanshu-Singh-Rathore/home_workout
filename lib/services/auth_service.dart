@@ -1,5 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+/*
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -39,3 +40,4 @@ class AuthService {
   // Stream to listen for auth changes
   Stream<User?> get userChanges => _auth.userChanges();
 }
+*/

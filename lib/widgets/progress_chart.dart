@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../config/app_theme.dart';
 
 class ProgressChart extends StatelessWidget {
   const ProgressChart({super.key});
@@ -10,7 +9,7 @@ class ProgressChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.kCardColor,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       height: 200,
@@ -31,11 +30,14 @@ class ProgressChart extends StatelessWidget {
                 FlSpot(6, 7),
               ],
               isCurved: true,
-              color: AppTheme.kAccentColor,
-              barWidth: 3,
+              color: Theme.of(context).colorScheme.secondary,
+              barWidth:
+                  3, // This should be Theme.of(context).colorScheme.secondary
               belowBarData: BarAreaData(
                 show: true,
-                color: AppTheme.kAccentColor.withAlpha((0.2 * 255).round()),
+                color: Theme.of(
+                  context,
+                ).colorScheme.secondary.withAlpha((0.2 * 255).round()),
               ),
               dotData: FlDotData(show: false),
             ),

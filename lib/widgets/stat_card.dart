@@ -4,15 +4,14 @@ import '../config/app_theme.dart';
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
-  const StatCard({Key? key, required this.title, required this.value})
-    : super(key: key);
+  const StatCard({super.key, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.kCardColor,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

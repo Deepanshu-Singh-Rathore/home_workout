@@ -4,36 +4,47 @@ import '../config/app_theme.dart';
 class QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
-  const QuickAction({Key? key, required this.icon, required this.label})
-    : super(key: key);
+  const QuickAction({super.key, required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {},
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.kCardColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppTheme.kAccentColor.withOpacity(0.12),
-                shape: BoxShape.circle,
+      child: Card(
+        color: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.secondary.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
               ),
-              child: Icon(icon, color: AppTheme.kAccentColor),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).iconTheme.color,
+              ),
+            ],
+          ),
         ),
       ),
     );
