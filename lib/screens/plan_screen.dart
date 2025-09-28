@@ -293,7 +293,8 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
     ThemeData theme,
   ) {
     return Container(
-        // color: theme.cardTheme.color,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2)),
         boxShadow: [
@@ -301,40 +302,6 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
             color: color.withOpacity(0.1),
             blurRadius: 5,
             offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
