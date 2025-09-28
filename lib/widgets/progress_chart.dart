@@ -1,3 +1,4 @@
+//lib/widgets/progress_chart.dart
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -9,14 +10,14 @@ class ProgressChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        // color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(12),
       ),
       height: 200,
       child: LineChart(
         LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(show: false),
+          gridData: const FlGridData(show: false),
+          titlesData: const FlTitlesData(show: false),
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
@@ -39,7 +40,7 @@ class ProgressChart extends StatelessWidget {
                   context,
                 ).colorScheme.secondary.withAlpha((0.2 * 255).round()),
               ),
-              dotData: FlDotData(show: false),
+              dotData: const FlDotData(show: false),
             ),
           ],
         ),

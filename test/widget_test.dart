@@ -7,12 +7,12 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:home_workout_app/main.dart';
+import 'package:home_workout_app/main.dart' as app;
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const RootApp());
+    await tester.pumpWidget(const app.FitVibeApp());
 
     /*
     // Verify that our counter starts at 0.

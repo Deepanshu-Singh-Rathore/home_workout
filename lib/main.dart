@@ -1,66 +1,120 @@
 import 'package:flutter/material.dart';
-import 'package:home_workout_app/config/app_theme.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'config/app_theme.dart';
 import 'app.dart';
 
-// -------------------- FIREBASE IMPORTS (commented for now) --------------------
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'firebase_options.dart';
-// import 'screens/onboarding_screen.dart';
-
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // -------------------- FIREBASE INITIALIZATION (commented for now) --------------------
-  /*
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  // Force dark theme in system UI and status bar
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: AppTheme.darkCardGrey,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
   );
-  */
 
-  runApp(const RootApp());
+  // Lock app orientation (portrait only)
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Fullscreen edge-to-edge
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  runApp(const FitVibeApp());
 }
 
-class RootApp extends StatelessWidget {
-  const RootApp({super.key});
+class FitVibeApp extends StatelessWidget {
+  const FitVibeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme, // Light theme
-      darkTheme: AppTheme.darkTheme, // Dark theme
-      themeMode: ThemeMode.system, // Auto switch
-      home: const MainApp(), // <-- TEMP: goes directly to MainApp
-      // home: const AuthWrapper(), // <-- FIREBASE MODE (uncomment when ready)
-    );
-  }
-}
-
-// -------------------- FIREBASE AUTH WRAPPER (commented for now) --------------------
-/*
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: AppTheme.kBackgroundColor,
-            body: Center(
-              child: CircularProgressIndicator(color: AppTheme.kAccentColor),
+      title: 'FitVibe - Dark Mode Fitness',
+      theme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark,
+      home: const AppWrapper(),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(
+              MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
             ),
-          );
-        }
-        if (snapshot.hasData) {
-          return const MainApp();
-        }
-        return const OnboardingScreen();
+          ),
+          child: child!,
+        );
       },
     );
   }
 }
-*/
+
+class AppWrapper extends StatefulWidget {
+  const AppWrapper({super.key});
+
+  @override
+  State<AppWrapper> createState() => _AppWrapperState();
+}
+
+class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeApp();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshSystemUI();
+    }
+  }
+
+  Future<void> _initializeApp() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    _refreshSystemUI();
+    FlutterNativeSplash.remove();
+  }
+
+  void _refreshSystemUI() {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: AppTheme.darkCardGrey,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: AppTheme.darkCardGrey,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+      child: MainApp(),
+    );
+  }
+}

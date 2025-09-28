@@ -28,7 +28,13 @@ class _ProgressScreenState extends State<ProgressScreen>
   late Animation<double> _chartAnimation;
 
   int _selectedTab = 0;
-  final List<String> _tabs = ['Overview', 'Weight', 'Strength', 'Activity', 'Body'];
+  final List<String> _tabs = [
+    'Overview',
+    'Weight',
+    'Strength',
+    'Activity',
+    'Body',
+  ];
 
   @override
   void initState() {
@@ -277,7 +283,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                     Text(
                       'Track your fitness journey',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                          0.7,
+                        ),
                       ),
                     ),
                   ],
@@ -327,7 +335,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        // color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2)),
         boxShadow: [
@@ -380,7 +388,7 @@ class _ProgressScreenState extends State<ProgressScreen>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        // color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -402,7 +410,10 @@ class _ProgressScreenState extends State<ProgressScreen>
               onTap: () => setState(() => _selectedTab = index),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 margin: const EdgeInsets.only(right: 4),
                 decoration: BoxDecoration(
                   color: isSelected
@@ -476,7 +487,16 @@ class _ProgressScreenState extends State<ProgressScreen>
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          const weeks = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'];
+                          const weeks = [
+                            'W1',
+                            'W2',
+                            'W3',
+                            'W4',
+                            'W5',
+                            'W6',
+                            'W7',
+                            'W8',
+                          ];
                           return Text(
                             value < weeks.length ? weeks[value.toInt()] : '',
                             style: theme.textTheme.bodySmall,
@@ -484,8 +504,12 @@ class _ProgressScreenState extends State<ProgressScreen>
                         },
                       ),
                     ),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
                   borderData: FlBorderData(show: false),
                   barGroups: _weeklyProgress.asMap().entries.map((entry) {
@@ -496,7 +520,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                           toY: entry.value,
                           color: theme.colorScheme.primary,
                           width: 20,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(4),
+                          ),
                         ),
                       ],
                     );
@@ -529,9 +555,11 @@ class _ProgressScreenState extends State<ProgressScreen>
                       Colors.orange,
                       Colors.purple,
                     ];
-                    final index = _workoutTypes.keys.toList().indexOf(entry.key);
+                    final index = _workoutTypes.keys.toList().indexOf(
+                      entry.key,
+                    );
                     final color = colors[index % colors.length];
-                    
+
                     return PieChartSectionData(
                       value: entry.value.toDouble(),
                       title: '${entry.value}%',
@@ -552,10 +580,16 @@ class _ProgressScreenState extends State<ProgressScreen>
               spacing: 16,
               runSpacing: 8,
               children: _workoutTypes.entries.map((entry) {
-                final colors = [Colors.red, Colors.blue, Colors.green, Colors.orange, Colors.purple];
+                final colors = [
+                  Colors.red,
+                  Colors.blue,
+                  Colors.green,
+                  Colors.orange,
+                  Colors.purple,
+                ];
                 final index = _workoutTypes.keys.toList().indexOf(entry.key);
                 final color = colors[index % colors.length];
-                
+
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -568,10 +602,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      entry.key,
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    Text(entry.key, style: theme.textTheme.bodySmall),
                   ],
                 );
               }).toList(),
@@ -580,6 +611,7 @@ class _ProgressScreenState extends State<ProgressScreen>
         ),
 
         const SizedBox(height: 16),
+        SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
       ],
     );
   }
@@ -631,16 +663,17 @@ class _ProgressScreenState extends State<ProgressScreen>
         SizedBox(
           height: 250,
           child: _weights.isEmpty
-              ? _buildEmptyChart('No weight data yet', 'Add your first weight measurement')
+              ? _buildEmptyChart(
+                  'No weight data yet',
+                  'Add your first weight measurement',
+                )
               : LineChart(
                   LineChartData(
                     gridData: FlGridData(
                       show: true,
                       drawVerticalLine: false,
-                      getDrawingHorizontalLine: (value) => FlLine(
-                        color: theme.dividerColor,
-                        strokeWidth: 1,
-                      ),
+                      getDrawingHorizontalLine: (value) =>
+                          FlLine(color: theme.dividerColor, strokeWidth: 1),
                     ),
                     titlesData: FlTitlesData(
                       leftTitles: AxisTitles(
@@ -663,8 +696,12 @@ class _ProgressScreenState extends State<ProgressScreen>
                           ),
                         ),
                       ),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
                     ),
                     borderData: FlBorderData(show: false),
                     lineBarsData: [
@@ -681,11 +718,11 @@ class _ProgressScreenState extends State<ProgressScreen>
                           show: true,
                           getDotPainter: (spot, percent, barData, index) =>
                               FlDotCirclePainter(
-                            radius: 6,
-                            color: Colors.white,
-                            strokeWidth: 3,
-                            strokeColor: theme.colorScheme.primary,
-                          ),
+                                radius: 6,
+                                color: Colors.white,
+                                strokeWidth: 3,
+                                strokeColor: theme.colorScheme.primary,
+                              ),
                         ),
                         belowBarData: BarAreaData(
                           show: true,
@@ -721,25 +758,44 @@ class _ProgressScreenState extends State<ProgressScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildDifficultyButton('Easier', Icons.trending_down_rounded, Colors.green, -1, theme),
-                _buildDifficultyButton('Same', Icons.remove_rounded, Colors.blue, 0, theme),
-                _buildDifficultyButton('Harder', Icons.trending_up_rounded, Colors.red, 1, theme),
+                _buildDifficultyButton(
+                  'Easier',
+                  Icons.trending_down_rounded,
+                  Colors.green,
+                  -1,
+                  theme,
+                ),
+                _buildDifficultyButton(
+                  'Same',
+                  Icons.remove_rounded,
+                  Colors.blue,
+                  0,
+                  theme,
+                ),
+                _buildDifficultyButton(
+                  'Harder',
+                  Icons.trending_up_rounded,
+                  Colors.red,
+                  1,
+                  theme,
+                ),
               ],
             ),
             const SizedBox(height: 20),
             SizedBox(
               height: 200,
               child: _strengthTrend.isEmpty
-                  ? _buildEmptyChart('No strength data yet', 'Record how your workouts feel')
+                  ? _buildEmptyChart(
+                      'No strength data yet',
+                      'Record how your workouts feel',
+                    )
                   : LineChart(
                       LineChartData(
                         gridData: FlGridData(
                           show: true,
                           drawVerticalLine: false,
-                          getDrawingHorizontalLine: (value) => FlLine(
-                            color: theme.dividerColor,
-                            strokeWidth: 1,
-                          ),
+                          getDrawingHorizontalLine: (value) =>
+                              FlLine(color: theme.dividerColor, strokeWidth: 1),
                         ),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
@@ -748,10 +804,23 @@ class _ProgressScreenState extends State<ProgressScreen>
                               reservedSize: 40,
                               getTitlesWidget: (value, meta) {
                                 switch (value.toInt()) {
-                                  case -1: return Text('Easier', style: theme.textTheme.bodySmall);
-                                  case 0: return Text('Same', style: theme.textTheme.bodySmall);
-                                  case 1: return Text('Harder', style: theme.textTheme.bodySmall);
-                                  default: return const Text('');
+                                  case -1:
+                                    return Text(
+                                      'Easier',
+                                      style: theme.textTheme.bodySmall,
+                                    );
+                                  case 0:
+                                    return Text(
+                                      'Same',
+                                      style: theme.textTheme.bodySmall,
+                                    );
+                                  case 1:
+                                    return Text(
+                                      'Harder',
+                                      style: theme.textTheme.bodySmall,
+                                    );
+                                  default:
+                                    return const Text('');
                                 }
                               },
                             ),
@@ -766,8 +835,12 @@ class _ProgressScreenState extends State<ProgressScreen>
                               ),
                             ),
                           ),
-                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
                         ),
                         borderData: FlBorderData(show: false),
                         minY: -1.5,
@@ -777,7 +850,10 @@ class _ProgressScreenState extends State<ProgressScreen>
                             isCurved: true,
                             spots: [
                               for (int i = 0; i < _strengthTrend.length; i++)
-                                FlSpot(i.toDouble(), _strengthTrend[i].toDouble()),
+                                FlSpot(
+                                  i.toDouble(),
+                                  _strengthTrend[i].toDouble(),
+                                ),
                             ],
                             color: theme.colorScheme.secondary,
                             barWidth: 4,
@@ -785,11 +861,11 @@ class _ProgressScreenState extends State<ProgressScreen>
                               show: true,
                               getDotPainter: (spot, percent, barData, index) =>
                                   FlDotCirclePainter(
-                                radius: 6,
-                                color: Colors.white,
-                                strokeWidth: 3,
-                                strokeColor: theme.colorScheme.secondary,
-                              ),
+                                    radius: 6,
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                    strokeColor: theme.colorScheme.secondary,
+                                  ),
                             ),
                           ),
                         ],
@@ -811,10 +887,7 @@ class _ProgressScreenState extends State<ProgressScreen>
           icon: Icons.calendar_view_month_rounded,
           theme: theme,
           children: [
-            SizedBox(
-              height: 120,
-              child: _buildActivityHeatmap(theme),
-            ),
+            SizedBox(height: 120, child: _buildActivityHeatmap(theme)),
           ],
         ),
         const SizedBox(height: 16),
@@ -825,11 +898,35 @@ class _ProgressScreenState extends State<ProgressScreen>
           children: [
             Row(
               children: [
-                Expanded(child: _buildStatCard('Total Workouts', '${_workoutDates.length}', Icons.fitness_center_rounded, Colors.orange, theme)),
+                Expanded(
+                  child: _buildStatCard(
+                    'Total Workouts',
+                    '${_workoutDates.length}',
+                    Icons.fitness_center_rounded,
+                    Colors.orange,
+                    theme,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: _buildStatCard('This Week', '$_weeklyWorkouts', Icons.calendar_view_week_rounded, Colors.blue, theme)),
+                Expanded(
+                  child: _buildStatCard(
+                    'This Week',
+                    '$_weeklyWorkouts',
+                    Icons.calendar_view_week_rounded,
+                    Colors.blue,
+                    theme,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: _buildStatCard('This Month', '$_monthlyWorkouts', Icons.calendar_month_rounded, Colors.green, theme)),
+                Expanded(
+                  child: _buildStatCard(
+                    'This Month',
+                    '$_monthlyWorkouts',
+                    Icons.calendar_month_rounded,
+                    Colors.green,
+                    theme,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -841,7 +938,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -878,9 +977,16 @@ class _ProgressScreenState extends State<ProgressScreen>
                   ],
                   radarShape: RadarShape.polygon,
                   tickCount: 5,
-                  titleTextStyle: theme.textTheme.bodySmall ?? const TextStyle(),
+                  titleTextStyle:
+                      theme.textTheme.bodySmall ?? const TextStyle(),
                   getTitle: (index, angle) {
-                    const titles = ['Strength', 'Cardio', 'Flexibility', 'Endurance', 'Balance'];
+                    const titles = [
+                      'Strength',
+                      'Cardio',
+                      'Flexibility',
+                      'Endurance',
+                      'Balance',
+                    ];
                     return RadarChartTitle(text: titles[index], angle: angle);
                   },
                 ),
@@ -902,10 +1008,15 @@ class _ProgressScreenState extends State<ProgressScreen>
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
               children: _bodyMetrics.entries.map((entry) {
-                final colors = [Colors.blue, Colors.green, Colors.orange, Colors.purple];
+                final colors = [
+                  Colors.blue,
+                  Colors.green,
+                  Colors.orange,
+                  Colors.purple,
+                ];
                 final index = _bodyMetrics.keys.toList().indexOf(entry.key);
                 final color = colors[index % colors.length];
-                
+
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -917,7 +1028,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        entry.key.contains('BMR') ? '${entry.value.toInt()}' : '${entry.value}%',
+                        entry.key.contains('BMR')
+                            ? '${entry.value.toInt()}'
+                            : '${entry.value}%',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -947,7 +1060,7 @@ class _ProgressScreenState extends State<ProgressScreen>
   Widget _buildActivityHeatmap(ThemeData theme) {
     const daysInMonth = 30;
     final today = DateTime.now();
-    
+
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
@@ -958,9 +1071,11 @@ class _ProgressScreenState extends State<ProgressScreen>
       itemCount: daysInMonth,
       itemBuilder: (context, index) {
         final date = today.subtract(Duration(days: daysInMonth - index - 1));
-        final hasWorkout = _workoutDates.any((d) =>
-            d.year == date.year && d.month == date.month && d.day == date.day);
-        
+        final hasWorkout = _workoutDates.any(
+          (d) =>
+              d.year == date.year && d.month == date.month && d.day == date.day,
+        );
+
         return Container(
           decoration: BoxDecoration(
             color: hasWorkout
@@ -973,7 +1088,9 @@ class _ProgressScreenState extends State<ProgressScreen>
               '${date.day}',
               style: TextStyle(
                 fontSize: 10,
-                color: hasWorkout ? Colors.white : theme.textTheme.bodySmall?.color,
+                color: hasWorkout
+                    ? Colors.white
+                    : theme.textTheme.bodySmall?.color,
                 fontWeight: hasWorkout ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -1000,7 +1117,11 @@ class _ProgressScreenState extends State<ProgressScreen>
     final current = _weights.last;
     final initial = _weights.first;
     final change = current - initial;
-    final changeColor = change > 0 ? Colors.red : change < 0 ? Colors.green : Colors.grey;
+    final changeColor = change > 0
+        ? Colors.red
+        : change < 0
+        ? Colors.green
+        : Colors.grey;
 
     return Row(
       children: [
@@ -1018,7 +1139,11 @@ class _ProgressScreenState extends State<ProgressScreen>
           child: _buildStatCard(
             'Change',
             '${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)} kg',
-            change > 0 ? Icons.trending_up : change < 0 ? Icons.trending_down : Icons.trending_flat,
+            change > 0
+                ? Icons.trending_up
+                : change < 0
+                ? Icons.trending_down
+                : Icons.trending_flat,
             changeColor,
             theme,
           ),
@@ -1027,7 +1152,13 @@ class _ProgressScreenState extends State<ProgressScreen>
     );
   }
 
-  Widget _buildDifficultyButton(String label, IconData icon, Color color, int value, ThemeData theme) {
+  Widget _buildDifficultyButton(
+    String label,
+    IconData icon,
+    Color color,
+    int value,
+    ThemeData theme,
+  ) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -1039,7 +1170,9 @@ class _ProgressScreenState extends State<ProgressScreen>
             backgroundColor: color,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
       ),
@@ -1057,7 +1190,11 @@ class _ProgressScreenState extends State<ProgressScreen>
       _strengthTrend.map((e) => e.toString()).toList(),
     );
 
-    final difficultyText = value == -1 ? 'easier' : value == 0 ? 'same difficulty' : 'harder';
+    final difficultyText = value == -1
+        ? 'easier'
+        : value == 0
+        ? 'same difficulty'
+        : 'harder';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Workout felt $difficultyText - recorded!'),
@@ -1076,10 +1213,17 @@ class _ProgressScreenState extends State<ProgressScreen>
           const SizedBox(height: 16),
           Text(
             title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
           ),
           const SizedBox(height: 4),
-          Text(subtitle, style: TextStyle(fontSize: 14, color: Colors.grey[500])),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+          ),
         ],
       ),
     );
@@ -1095,7 +1239,7 @@ class _ProgressScreenState extends State<ProgressScreen>
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        // color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -1121,7 +1265,9 @@ class _ProgressScreenState extends State<ProgressScreen>
               const SizedBox(width: 12),
               Text(
                 title,
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -1132,7 +1278,13 @@ class _ProgressScreenState extends State<ProgressScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, ThemeData theme) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    ThemeData theme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

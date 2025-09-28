@@ -1,265 +1,14 @@
-// lib/app.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'config/app_theme.dart';
 import 'models/workout.dart';
-
 import 'models/playlist.dart';
+import 'screens/home_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/plan_screen.dart';
 import 'screens/progress_screen.dart';
 import 'screens/profile_screen.dart';
-
-// Updated HomeScreen to receive theme props
-class HomeScreen extends StatefulWidget {
-  final VoidCallback onStartSearch;
-  final VoidCallback onStartPlan;
-  final bool isDarkMode;
-  final ValueChanged<bool> onThemeChanged;
-
-  const HomeScreen({
-    super.key,
-    required this.onStartSearch,
-    required this.onStartPlan,
-    required this.isDarkMode,
-    required this.onThemeChanged,
-  });
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  String _name = "";
-  String _goal = "";
-  double _bmi = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    // For now using mock data - integrate with SharedPreferences later
-    setState(() {
-      _name = "User";
-      _goal = "Get Fit";
-      _bmi = 22.5;
-    });
-  }
-
-  String _bmiStatus(double bmi) {
-    if (bmi == 0) return "N/A";
-    if (bmi < 18.5) return "Underweight";
-    if (bmi < 24.9) return "Normal";
-    if (bmi < 29.9) return "Overweight";
-    return "Obese";
-  }
-
-  void _openProfileMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: Text("Logged in as $_name"),
-            ),
-            const Divider(),
-            SwitchListTile(
-              secondary: Icon(
-                widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-              ),
-              title: Text(widget.isDarkMode ? "Dark Mode" : "Light Mode"),
-              value: widget.isDarkMode,
-              onChanged: widget.onThemeChanged,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Close"),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: ListView(
-            children: [
-              // Greeting
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      "Welcome back, $_name ",
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _openProfileMenu(context),
-                    child: CircleAvatar(
-                      radius: 28,
-                      backgroundColor: theme.colorScheme.secondary,
-                      child: Icon(
-                        Icons.person,
-                        color: theme.colorScheme.onSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Goal + BMI cards
-              Row(
-                children: [
-                  Expanded(
-                    child: _dashboardCard(
-                      icon: Icons.flag,
-                      title: "Goal",
-                      value: _goal,
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.secondary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _dashboardCard(
-                      icon: Icons.monitor_weight,
-                      title: "BMI",
-                      value: "${_bmi.toStringAsFixed(1)}${_bmiStatus(_bmi)}",
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.secondary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Workout + Plan buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: widget.onStartSearch,
-                      icon: const Icon(Icons.search),
-                      label: const Text("Find Workouts"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: widget.onStartPlan,
-                      icon: const Icon(Icons.fitness_center),
-                      label: const Text("My Plan"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.secondary,
-                        foregroundColor: theme.colorScheme.onSecondary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _dashboardCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Gradient gradient,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 28, color: Colors.white),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              height: 1.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+import 'screens/workout_detail_screen.dart';
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -268,86 +17,175 @@ class MainApp extends StatefulWidget {
   State<MainApp> createState() => _MainAppState();
 }
 
-class _MainAppState extends State<MainApp> {
+class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   int _currentIndex = 0;
-  ThemeMode _themeMode = ThemeMode.light;
+  late AnimationController _navigationController;
+  late Animation<double> _navigationAnimation;
 
   final List<Workout> sampleWorkouts = [
     Workout(
       id: '1',
-      title: 'Morning Strength Training',
+      title: 'Morning Power Workout',
       durationMinutes: 30,
-      thumbnailUrl: 'assets/thumbnails/pushup.png',
-      videoUrl: 'https://example.com/video1.mp4',
+      thumbnailUrl: 'assets/thumbnails/morning_power.png',
+      videoUrl: 'https://example.com/morning_power.mp4',
     ),
     Workout(
       id: '2',
-      title: 'High-Intensity Cardio Blast',
+      title: 'HIIT Fat Burner',
       durationMinutes: 25,
-      thumbnailUrl: 'assets/thumbnails/squats.png',
-      videoUrl: 'https://example.com/video2.mp4',
+      thumbnailUrl: 'assets/thumbnails/hiit_burner.png',
+      videoUrl: 'https://example.com/hiit_burner.mp4',
     ),
     Workout(
       id: '3',
-      title: 'Flexibility & Stretching',
+      title: 'Yoga Flow & Stretch',
       durationMinutes: 20,
-      thumbnailUrl: 'assets/thumbnails/plank.png',
-      videoUrl: 'https://example.com/video3.mp4',
+      thumbnailUrl: 'assets/thumbnails/yoga_flow.png',
+      videoUrl: 'https://example.com/yoga_flow.mp4',
     ),
     Workout(
       id: '4',
-      title: 'Full Body HIIT',
+      title: 'Full Body Strength',
       durationMinutes: 35,
-      thumbnailUrl: 'assets/thumbnails/mountain_climbers.png',
-      videoUrl: 'https://example.com/video4.mp4',
+      thumbnailUrl: 'assets/thumbnails/full_body.png',
+      videoUrl: 'https://example.com/full_body.mp4',
     ),
     Workout(
       id: '5',
-      title: 'Core Power Workout',
+      title: 'Core Destroyer',
       durationMinutes: 15,
-      thumbnailUrl: 'assets/thumbnails/pushup.png',
-      videoUrl: 'https://example.com/video5.mp4',
+      thumbnailUrl: 'assets/thumbnails/core_destroyer.png',
+      videoUrl: 'https://example.com/core_destroyer.mp4',
+    ),
+    Workout(
+      id: '6',
+      title: 'Cardio Dance Party',
+      durationMinutes: 40,
+      thumbnailUrl: 'assets/thumbnails/cardio_dance.png',
+      videoUrl: 'https://example.com/cardio_dance.mp4',
+    ),
+    Workout(
+      id: '7',
+      title: 'Upper Body Blast',
+      durationMinutes: 28,
+      thumbnailUrl: 'assets/thumbnails/upper_body.png',
+      videoUrl: 'https://example.com/upper_body.mp4',
+    ),
+    Workout(
+      id: '8',
+      title: 'Lower Body Burn',
+      durationMinutes: 32,
+      thumbnailUrl: 'assets/thumbnails/lower_body.png',
+      videoUrl: 'https://example.com/lower_body.mp4',
     ),
   ];
 
   final List<Workout> _plan = [];
 
-  void _addToPlan(Workout w) {
+  @override
+  void initState() {
+    super.initState();
+    _setupSystemUI();
+    _setupAnimations();
+  }
+
+  void _setupSystemUI() {
+    // Set status bar to dark theme
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: AppTheme.darkCardGrey,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
+  }
+
+  void _setupAnimations() {
+    _navigationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _navigationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _navigationController, curve: Curves.easeInOut),
+    );
+
+    _navigationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _navigationController.dispose();
+    super.dispose();
+  }
+
+  void _addToPlan(Workout workout) {
     setState(() {
-      if (!_plan.any((p) => p.id == w.id)) _plan.add(w);
+      if (!_plan.any((p) => p.id == workout.id)) {
+        _plan.add(workout);
+        _showSnackBar('${workout.title} added to your plan!', Colors.green);
+      }
     });
   }
 
   void _removeFromPlan(String id) {
     setState(() {
+      final workout = _plan.firstWhere((w) => w.id == id);
       _plan.removeWhere((w) => w.id == id);
+      _showSnackBar('${workout.title} removed from plan', Colors.red);
     });
   }
 
   void _addPlaylistToPlan(Playlist playlist) {
+    int addedCount = 0;
     setState(() {
       for (var workout in playlist.workouts) {
         if (!_plan.any((p) => p.id == workout.id)) {
           _plan.add(workout);
+          addedCount++;
         }
       }
     });
+
+    if (addedCount > 0) {
+      _showSnackBar(
+        '$addedCount workouts from "${playlist.title}" added!',
+        Colors.green,
+      );
+    }
   }
 
-  void _toggleTheme(bool isDark) {
-    setState(() {
-      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-    });
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _onTabChanged(int index) {
+    setState(() => _currentIndex = index);
+
+    // Haptic feedback
+    HapticFeedback.lightImpact();
+
+    // Restart animation
+    _navigationController.reset();
+    _navigationController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
     final screens = [
       HomeScreen(
-        onStartSearch: () => setState(() => _currentIndex = 1),
-        onStartPlan: () => setState(() => _currentIndex = 2),
-        isDarkMode: _themeMode == ThemeMode.dark,
-        onThemeChanged: _toggleTheme,
+        onStartSearch: () => _onTabChanged(1),
+        onStartPlan: () => _onTabChanged(2),
       ),
       SearchScreen(
         workouts: sampleWorkouts,
@@ -357,152 +195,162 @@ class _MainAppState extends State<MainApp> {
       ),
       PlanScreen(plan: _plan, onRemove: _removeFromPlan),
       const ProgressScreen(),
-      ProfileScreen(
-        isDarkMode: _themeMode == ThemeMode.dark,
-        onThemeChanged: _toggleTheme,
-      ),
+      const ProfileScreen(),
     ];
-
-    final currentTheme = _themeMode == ThemeMode.dark
-        ? AppTheme.darkTheme
-        : AppTheme.lightTheme;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: _themeMode,
-      home: Theme(
-        data: currentTheme,
-        child: Scaffold(
-          body: IndexedStack(index: _currentIndex, children: screens),
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              color: currentTheme.bottomNavigationBarTheme.backgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (i) => setState(() => _currentIndex = i),
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              selectedItemColor: currentTheme.colorScheme.primary,
-              unselectedItemColor: currentTheme.iconTheme.color?.withOpacity(
-                0.6,
+      theme: AppTheme.darkTheme,
+      home: Scaffold(
+        backgroundColor: AppTheme.backgroundBlack,
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.02, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
               ),
-              selectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 11,
-              ),
-              items: [
-                BottomNavigationBarItem(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: _currentIndex == 0
-                        ? BoxDecoration(
-                            color: currentTheme.colorScheme.primary.withOpacity(
-                              0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : null,
-                    child: Icon(
-                      _currentIndex == 0 ? Icons.home : Icons.home_outlined,
-                      size: 24,
-                    ),
-                  ),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: _currentIndex == 1
-                        ? BoxDecoration(
-                            color: currentTheme.colorScheme.primary.withOpacity(
-                              0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : null,
-                    child: Icon(
-                      _currentIndex == 1 ? Icons.search : Icons.search_outlined,
-                      size: 24,
-                    ),
-                  ),
-                  label: 'Search',
-                ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: _currentIndex == 2
-                        ? BoxDecoration(
-                            color: currentTheme.colorScheme.primary.withOpacity(
-                              0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : null,
-                    child: Icon(
-                      _currentIndex == 2
-                          ? Icons.calendar_today
-                          : Icons.calendar_today_outlined,
-                      size: 24,
-                    ),
-                  ),
-                  label: 'Plan',
-                ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: _currentIndex == 3
-                        ? BoxDecoration(
-                            color: currentTheme.colorScheme.primary.withOpacity(
-                              0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : null,
-                    child: Icon(
-                      _currentIndex == 3
-                          ? Icons.show_chart
-                          : Icons.show_chart_outlined,
-                      size: 24,
-                    ),
-                  ),
-                  label: 'Progress',
-                ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: _currentIndex == 4
-                        ? BoxDecoration(
-                            color: currentTheme.colorScheme.primary.withOpacity(
-                              0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : null,
-                    child: Icon(
-                      _currentIndex == 4 ? Icons.person : Icons.person_outline,
-                      size: 24,
-                    ),
-                  ),
-                  label: 'Profile',
-                ),
-              ],
+            );
+          },
+          child: SafeArea(
+            bottom: true,
+            child: IndexedStack(
+              key: ValueKey<int>(_currentIndex),
+              index: _currentIndex,
+              children: screens,
             ),
           ),
+        ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
+      ),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/workout-detail':
+            final args = settings.arguments as Map<String, dynamic>;
+            return PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return WorkoutDetailScreen(
+                  workout: args['workout'],
+                  onAdd: args['onAdd'],
+                  added: args['added'] ?? false,
+                );
+              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(1.0, 0.0),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeOutCubic,
+                            ),
+                          ),
+                      child: child,
+                    );
+                  },
+            );
+          default:
+            return null;
+        }
+      },
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.darkCardGrey,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(77),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Container(
+          height: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
+              _buildNavItem(1, Icons.search_rounded, Icons.search, 'Search'),
+              _buildNavItem(
+                2,
+                Icons.calendar_today_rounded,
+                Icons.calendar_today_outlined,
+                'Plan',
+              ),
+              _buildNavItem(
+                3,
+                Icons.trending_up_rounded,
+                Icons.trending_up,
+                'Progress',
+              ),
+              _buildNavItem(
+                4,
+                Icons.person_rounded,
+                Icons.person_outline,
+                'Profile',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    int index,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String label,
+  ) {
+    final isSelected = _currentIndex == index;
+
+    return GestureDetector(
+      onTap: () => _onTabChanged(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primaryIndigo.withAlpha(38)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                isSelected ? activeIcon : inactiveIcon,
+                key: ValueKey('${index}_$isSelected'),
+                color: isSelected ? AppTheme.primaryIndigo : AppTheme.greyText,
+              ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? AppTheme.primaryIndigo : AppTheme.greyText,
+              ),
+              child: Text(label),
+            ),
+          ],
         ),
       ),
     );

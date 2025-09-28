@@ -1,5 +1,7 @@
+//lib/screens/search_screen.dart
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
+import '../config/app_theme.dart';
 import '../models/playlist.dart';
 import '../widgets/workout_card.dart';
 
@@ -139,36 +141,18 @@ class _SearchScreenState extends State<SearchScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppTheme.backgroundBlack,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Enhanced search header
-            _buildSearchHeader(theme),
-
-            // Category filters
-            if (_showFilters) _buildCategoryFilters(theme),
-
-            // Main content
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  // Featured playlists section
-                  SliverToBoxAdapter(child: _buildPlaylistsSection(theme)),
-
-                  // Individual workouts section
-                  SliverToBoxAdapter(child: _buildWorkoutsHeader(theme)),
-
-                  // Workouts grid
-                  _buildWorkoutsGrid(theme),
-
-                  // Bottom action
-                  SliverToBoxAdapter(child: _buildBottomAction(theme)),
-                ],
-              ),
-            ),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(child: _buildSearchHeader(theme)),
+            SliverToBoxAdapter(child: _buildCategoryFilters(theme)),
+            if (_query.isEmpty)
+              SliverToBoxAdapter(child: _buildPlaylistsSection(theme)),
+            SliverToBoxAdapter(child: _buildWorkoutsHeader(theme)),
+            _buildWorkoutsGrid(theme),
+            SliverToBoxAdapter(child: _buildBottomAction(theme)),
           ],
         ),
       ),
@@ -506,26 +490,32 @@ class _SearchScreenState extends State<SearchScreen>
   Widget _buildWorkoutsGrid(ThemeData theme) {
     if (_filteredWorkouts.isEmpty) {
       return SliverToBoxAdapter(
-        child: Container(
-          padding: const EdgeInsets.all(32),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            top: 32,
+            left: 32,
+            right: 32,
+            bottom: MediaQuery.of(context).padding.bottom + 32,
+          ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.search_off_rounded, size: 64, color: Colors.grey[400]),
               const SizedBox(height: 16),
               Text(
                 _query.isEmpty ? 'No workouts available' : 'No workouts found',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
               ),
               const SizedBox(height: 8),
               Text(
                 _query.isEmpty
                     ? 'Check back later for new content'
                     : 'Try adjusting your search or filters',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[500],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
                 textAlign: TextAlign.center,
               ),
             ],

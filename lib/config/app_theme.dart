@@ -1,82 +1,143 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Light Theme Colors
-  static const Color lightPrimary = Color(0xFF8AA624);
-  static const Color lightBackground = Color(
-    0xFFFFFFFF,
-  ); // pure white background
-  static const Color lightText = Color(0xFF222527);
-  static const Color lightButtons = Color(0xFF8AA624);
+  // Core Colors
+  static const Color primaryIndigo = Color(0xFF6366F1);
+  static const Color backgroundBlack = Color(0xFF000000);
+  static const Color darkCardGrey = Color(0xFF121212);
+  static const Color borderGrey = Color(0xFF2A2A2A);
+  static const Color whiteText = Color(0xFFFFFFFF);
+  static const Color greyText = Color(0xFF9E9E9E);
 
-  // Dark Theme Colors
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkPrimary = Color(0xFF03C988);
-  static const Color darkSecondary = Color(0xFF4F4F4F);
-  static const Color darkText = Color(0xFFE0E0E0);
-  static const Color darkCta = Color(0xFF03C988);
-
-  static final ThemeData lightTheme = ThemeData(
-    brightness: Brightness.light,
-    primaryColor: lightPrimary,
-    scaffoldBackgroundColor: lightBackground,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: lightBackground,
-      elevation: 0,
-      iconTheme: IconThemeData(color: lightText),
-      titleTextStyle: TextStyle(
-        color: lightText,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: lightText, fontSize: 16),
-      bodyMedium: TextStyle(color: lightText),
-    ),
-    colorScheme: ColorScheme.light(
-      primary: lightPrimary,
-      secondary: lightPrimary,
-      onPrimary: lightBackground,
-      onSecondary: lightBackground,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: lightButtons,
-        foregroundColor: lightBackground,
-      ),
-    ),
-  );
-
+  // Dark Theme Only
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primaryColor: darkPrimary,
-    scaffoldBackgroundColor: darkBackground,
+    scaffoldBackgroundColor: backgroundBlack,
+    primaryColor: primaryIndigo,
+    colorScheme: const ColorScheme.dark(
+      primary: primaryIndigo,
+      secondary: primaryIndigo,
+      surface: darkCardGrey,
+      onPrimary: whiteText,
+      onSurface: whiteText,
+      onSecondary: whiteText,
+    ),
+
+    // AppBar
     appBarTheme: const AppBarTheme(
-      backgroundColor: darkBackground,
+      backgroundColor: backgroundBlack,
       elevation: 0,
-      iconTheme: IconThemeData(color: darkText),
+      iconTheme: IconThemeData(color: whiteText),
       titleTextStyle: TextStyle(
-        color: darkText,
+        color: whiteText,
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),
     ),
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: darkText, fontSize: 16),
-      bodyMedium: TextStyle(color: darkText),
+
+    // Bottom Navigation Bar
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: darkCardGrey,
+      selectedItemColor: primaryIndigo,
+      unselectedItemColor: greyText,
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+      type: BottomNavigationBarType.fixed,
     ),
-    colorScheme: ColorScheme.dark(
-      primary: darkPrimary,
-      secondary: darkPrimary,
-      onPrimary: darkBackground,
-      onSecondary: darkBackground,
-    ),
+
+    // Card Theme
+    // cardTheme: const CardThemeData(
+    //   color: darkCardGrey,
+    //   shape: RoundedRectangleBorder(
+    //     borderRadius: BorderRadius.all(Radius.circular(16)),
+    //   ),
+    //   elevation: 8,
+    //   shadowColor: Colors.black54,
+    // ),
+
+    // Elevated Button
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: darkPrimary,
-        foregroundColor: darkBackground,
+        backgroundColor: primaryIndigo,
+        foregroundColor: whiteText,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(30)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 48),
+        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
       ),
+    ),
+
+    // Outlined Button
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: whiteText,
+        side: const BorderSide(color: primaryIndigo, width: 2),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(30)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 48),
+        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      ),
+    ),
+
+    // Input Fields
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: darkCardGrey,
+      labelStyle: const TextStyle(color: greyText),
+      hintStyle: const TextStyle(color: greyText),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: borderGrey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: borderGrey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: primaryIndigo, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+    ),
+
+    // Icons
+    iconTheme: const IconThemeData(color: whiteText),
+
+    // Text
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
+        color: whiteText,
+        fontWeight: FontWeight.bold,
+        fontSize: 32,
+      ),
+      headlineMedium: TextStyle(
+        color: whiteText,
+        fontWeight: FontWeight.w600,
+        fontSize: 24,
+      ),
+      titleLarge: TextStyle(
+        color: whiteText,
+        fontWeight: FontWeight.w700,
+        fontSize: 20,
+      ),
+      bodyLarge: TextStyle(color: whiteText, fontSize: 16),
+      bodyMedium: TextStyle(color: greyText, fontSize: 14),
+      labelLarge: TextStyle(
+        color: primaryIndigo,
+        fontWeight: FontWeight.bold,
+        fontSize: 14,
+      ),
+      labelMedium: TextStyle(color: greyText, fontSize: 12),
+      labelSmall: TextStyle(color: Color(0xFFCCCCCC), fontSize: 10),
     ),
   );
 }

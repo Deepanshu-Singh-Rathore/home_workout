@@ -1,3 +1,4 @@
+//lib/models/playlist.dart
 import 'workout.dart';
 
 class Playlist {

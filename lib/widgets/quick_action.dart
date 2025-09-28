@@ -1,4 +1,6 @@
+//lib/widgets/quick_action.dart
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import '../config/app_theme.dart';
 
 class QuickAction extends StatelessWidget {
@@ -12,7 +14,7 @@ class QuickAction extends StatelessWidget {
       onTap: () {},
       borderRadius: BorderRadius.circular(12),
       child: Card(
-        color: Theme.of(context).cardColor,
+        // color: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),

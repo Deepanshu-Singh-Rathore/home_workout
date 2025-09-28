@@ -1,3 +1,4 @@
+//lib/screens/onboarding_screen.dart
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -287,7 +288,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                             decoration: BoxDecoration(
                                               borderRadius:
                                                   BorderRadius.circular(4),
-                                              gradient: LinearGradient(
+                                              gradient: const LinearGradient(
                                                 colors: [
                                                   Colors.red,
                                                   Colors.orange,

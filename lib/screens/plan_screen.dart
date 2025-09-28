@@ -1,3 +1,4 @@
+//lib/screens/plan_screen.dart
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
 
@@ -292,9 +293,7 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
     ThemeData theme,
   ) {
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
+        // color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2)),
         boxShadow: [
@@ -347,7 +346,7 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -523,7 +522,7 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

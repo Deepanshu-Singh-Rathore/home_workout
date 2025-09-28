@@ -1,4 +1,6 @@
+//lib/widgets/stat_card.dart
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import '../config/app_theme.dart';
 
 class StatCard extends StatelessWidget {
@@ -11,7 +13,7 @@ class StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        // color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

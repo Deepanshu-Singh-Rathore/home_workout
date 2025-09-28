@@ -625,7 +625,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen>
           ),
 
           // Bottom padding for floating button
-          const SizedBox(height: 100),
+          SafeArea(child: SizedBox(height: 16)),
         ],
       ),
     );
