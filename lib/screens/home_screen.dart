@@ -24,6 +24,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String _goal = "";
   double _bmi = 0;
   String? _profileImagePath;
+  final String _motivation =
+      "Push yourself, because no one else is going to do it for you.";
+  final List<String> _quickTips = [
+    "Stay hydrated!",
+    "Warm up before every workout.",
+    "Track your progress for motivation.",
+    "Rest is as important as training.",
+    "Eat a balanced diet for best results.",
+  ];
 
   // Animation Controllers
   late AnimationController _fadeController;
@@ -163,13 +172,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Color _getBmiColor(double bmi) {
-    if (bmi == 0) return AppTheme.greyText;
-    if (bmi < 18.5) return AppTheme.primaryIndigo;
+    if (bmi == 0) return AppTheme.textSecondary;
+    if (bmi < 18.5) return AppTheme.primaryPurple;
     if (bmi < 24.9) return Colors.green;
     if (bmi < 29.9)
       return Colors
           .orange; // Changed from AppTheme.successGreen to Colors.orange
-    return Colors.red;
+    return AppTheme.errorRed;
   }
 
   void _openProfileMenu(BuildContext context) {
@@ -179,8 +188,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       builder: (_) => SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            decoration: const BoxDecoration(
-              color: AppTheme.darkCardGrey,
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
@@ -194,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.greyText.withOpacity(0.5),
+                    color: AppTheme.textSecondary.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -212,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Text(
                             _name,
                             style: const TextStyle(
-                              color: AppTheme.whiteText,
+                              color: AppTheme.textPrimary,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -220,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Text(
                             _goal,
                             style: const TextStyle(
-                              color: AppTheme.greyText,
+                              color: AppTheme.textSecondary,
                               fontSize: 14,
                             ),
                           ),
@@ -231,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       onPressed: _editProfile,
                       icon: const Icon(
                         Icons.edit_rounded,
-                        color: AppTheme.primaryIndigo,
+                        color: AppTheme.primaryPurple,
                       ),
                     ),
                   ],
@@ -260,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Profile editing coming soon!'),
-        backgroundColor: AppTheme.primaryIndigo,
+        backgroundColor: AppTheme.primaryPurple,
       ),
     );
   }
@@ -268,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Dark indigo background
+      backgroundColor: const Color(0xFF0F172A),
       body: SafeArea(
         bottom: true,
         child: SingleChildScrollView(
@@ -281,40 +290,99 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 opacity: _fadeAnimation,
                 child: _buildGreetingSection(),
               ),
-
               const SizedBox(height: 24),
-
+              // Motivational Message
+              Card(
+                color: Colors.grey[900],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.emoji_events,
+                        color: Colors.purple,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _motivation,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Quick Tips Card
+              Card(
+                color: Colors.grey[900],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Quick Tips',
+                        style: TextStyle(
+                          color: Colors.purple,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ..._quickTips.map(
+                        (tip) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          child: Text(
+                            '• $tip',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               // Daily Summary Card
               SlideTransition(
                 position: _slideAnimation,
                 child: _buildDailySummaryCard(),
               ),
-
               const SizedBox(height: 24),
-
               // Goal & BMI Cards
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: _buildStatsCards(),
               ),
-
               const SizedBox(height: 24),
-
               // Action Buttons
               SlideTransition(
                 position: _slideAnimation,
                 child: _buildActionButtons(),
               ),
-
               const SizedBox(height: 32),
-
               // Suggested Workouts
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: _buildSuggestedWorkouts(),
               ),
-
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
             ],
           ),
         ),
@@ -324,59 +392,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildGreetingSection() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _getGreeting(),
-                style: const TextStyle(
-                  color: AppTheme.greyText, // #A5B4FC
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _getGreeting(),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(height: 4),
-              AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(
-                      0,
-                      math.sin(_floatAnimation.value * 2 * math.pi) * 3,
-                    ), // Fixed: Removed const from here
-                    child: ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
-                        colors: [
-                          AppTheme.primaryIndigo,
-                          AppTheme.primaryIndigo,
-                        ],
-                      ).createShader(bounds),
-                      child: Text(
-                        _name,
-                        style: TextStyle(
-                          // Fixed: Removed const from here
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+            ),
+            Text(
+              _name,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         GestureDetector(
           onTap: () => _openProfileMenu(context),
           child: AnimatedBuilder(
-            animation: _scaleAnimation, // Fixed: Removed const from here
+            animation: _floatAnimation,
             builder: (context, child) {
-              // Fixed: Removed const from here
-              return Transform.scale(
-                scale: 0.8 + (_scaleAnimation.value * 0.2),
+              return Transform.translate(
+                offset: Offset(
+                  0,
+                  math.sin(_floatAnimation.value * math.pi * 2) * 5,
+                ),
                 child: _buildProfileAvatar(50),
               );
             },
@@ -391,16 +437,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(
-          size / 2,
-        ), // Fixed: Removed const from here
+        borderRadius: BorderRadius.circular(size / 2),
         gradient: const LinearGradient(
-          colors: [AppTheme.primaryIndigo, AppTheme.primaryIndigo],
+          colors: [AppTheme.primaryPurple, AppTheme.secondaryPurple],
         ),
         boxShadow: [
           BoxShadow(
-            // Fixed: Removed const from here
-            color: AppTheme.primaryIndigo.withOpacity(0.4),
+            color: AppTheme.primaryPurple.withOpacity(0.4),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -450,14 +493,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryIndigo.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(
-                    12,
-                  ), // Fixed: Removed const from here
+                  color: AppTheme.primaryPurple.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.today_rounded,
-                  color: AppTheme.primaryIndigo,
+                  color: AppTheme.primaryPurple,
                   size: 20,
                 ),
               ),
@@ -465,7 +506,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               const Text(
                 'Today\'s Summary', // Fixed: Removed const from here
                 style: TextStyle(
-                  color: AppTheme.whiteText, // #FFFFFF
+                  color: AppTheme.textPrimary, // #FFFFFF
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -491,8 +532,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   '2',
                   'sessions',
                   Icons.fitness_center_rounded,
-                  Colors.green, // #10B981
-                ), // Fixed: Removed const from here
+                  AppTheme.successGreen, // #10B981
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -501,7 +542,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   '45',
                   'minutes',
                   Icons.timer_rounded,
-                  AppTheme.primaryIndigo,
+                  AppTheme.primaryPurple,
                 ),
               ),
             ],
@@ -532,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Text(
           value,
           style: const TextStyle(
-            color: AppTheme.whiteText, // #FFFFFF
+            color: AppTheme.textPrimary, // #FFFFFF
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -540,7 +581,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Text(
           unit,
           style: const TextStyle(
-            color: AppTheme.greyText, // #A5B4FC
+            color: AppTheme.textSecondary, // #A5B4FC
             fontSize: 10,
           ),
         ),
@@ -548,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Text(
           title,
           style: const TextStyle(
-            color: AppTheme.greyText, // #A5B4FC
+            color: AppTheme.textSecondary, // #A5B4FC
             fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
@@ -567,7 +608,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             title: "Current Goal",
             value: _goal,
             gradient: const LinearGradient(
-              colors: [AppTheme.primaryIndigo, AppTheme.primaryIndigo],
+              colors: [AppTheme.primaryPurple, AppTheme.secondaryPurple],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -582,7 +623,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ? "${_bmi.toStringAsFixed(1)}\n${_bmiStatus(_bmi)}"
                 : _bmiStatus(_bmi),
             gradient: LinearGradient(
-              // Fixed: Removed const from here
               colors: [_getBmiColor(_bmi), _getBmiColor(_bmi).withOpacity(0.7)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -655,7 +695,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 icon: Icons.search_rounded,
                 label: "Find",
                 gradient: const LinearGradient(
-                  colors: [AppTheme.primaryIndigo, AppTheme.primaryIndigo],
+                  colors: [AppTheme.primaryPurple, AppTheme.secondaryPurple],
                 ),
               ),
             ),
@@ -688,7 +728,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 icon: Icons.calendar_today_rounded,
                 label: "Plan",
                 gradient: const LinearGradient(
-                  colors: [AppTheme.primaryIndigo, AppTheme.primaryIndigo],
+                  colors: [AppTheme.primaryPurple, AppTheme.primaryPurple],
                 ),
               ),
             ),
@@ -748,14 +788,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.2), // #10B981
-                borderRadius: BorderRadius.circular(
-                  12,
-                ), // Fixed: Removed const from here
+                color: AppTheme.successGreen.withOpacity(0.2), // #10B981
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                Icons.recommend_rounded, // Fixed: Removed const from here
-                color: Colors.green, // #10B981
+              child: const Icon(
+                Icons.recommend_rounded,
+                color: AppTheme.successGreen, // #10B981
                 size: 20,
               ),
             ),
@@ -764,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               // Fixed: Removed const from here
               'Suggested for You',
               style: TextStyle(
-                color: AppTheme.whiteText, // #FFFFFF
+                color: AppTheme.textPrimary, // #FFFFFF
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -818,8 +856,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   topRight: Radius.circular(16),
                 ),
                 gradient: const LinearGradient(
-                  // Fixed: Removed const from here
-                  colors: [AppTheme.primaryIndigo, AppTheme.primaryIndigo],
+                  colors: [AppTheme.primaryPurple, AppTheme.primaryPurple],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -871,7 +908,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Text(
                     workout.title,
                     style: const TextStyle(
-                      color: AppTheme.whiteText, // #FFFFFF
+                      color: AppTheme.textPrimary, // #FFFFFF
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
@@ -883,15 +920,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryIndigo.withOpacity(0.2),
+                      color: AppTheme.primaryPurple.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
                       'Quick Start',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppTheme.primaryIndigo,
-                        fontSize: 10, // Fixed: Removed const from here
+                        color: AppTheme.primaryPurple,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -13,7 +13,7 @@ class ProgressScreen extends StatefulWidget {
 
 class _ProgressScreenState extends State<ProgressScreen>
     with TickerProviderStateMixin {
-  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _weightInputController = TextEditingController();
 
   List<double> _weights = [];
   List<int> _strengthTrend = [];
@@ -36,12 +36,19 @@ class _ProgressScreenState extends State<ProgressScreen>
     'Body',
   ];
 
+  double _weight = 70.0;
+
   @override
   void initState() {
     super.initState();
     _setupAnimations();
-    _loadData();
+    _loadData(); // Changed _loadWeight to _loadData
     _generateMockData();
+  }
+
+  Future<void> _saveWeight() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('weight', _weight);
   }
 
   void _setupAnimations() {
@@ -73,7 +80,7 @@ class _ProgressScreenState extends State<ProgressScreen>
   void dispose() {
     _headerController.dispose();
     _chartController.dispose();
-    _weightController.dispose();
+    _weightInputController.dispose();
     super.dispose();
   }
 
@@ -134,45 +141,6 @@ class _ProgressScreenState extends State<ProgressScreen>
     });
   }
 
-  Future<void> _saveWeight() async {
-    final weight = double.tryParse(_weightController.text);
-    if (weight == null || weight <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid weight'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _weights.add(weight);
-      _weightController.clear();
-    });
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      "weights",
-      _weights.map((e) => e.toString()).toList(),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Weight recorded successfully!'),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
   int get _weeklyWorkouts {
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -192,35 +160,40 @@ class _ProgressScreenState extends State<ProgressScreen>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Enhanced header
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _headerAnimation,
-                child: _buildHeader(theme),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
+          child: CustomScrollView(
+            slivers: [
+              // Enhanced header
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _headerAnimation,
+                  child: _buildHeader(theme),
+                ),
               ),
-            ),
 
-            // Tab selector
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _headerAnimation,
-                child: _buildTabSelector(theme),
+              // Tab selector
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _headerAnimation,
+                  child: _buildTabSelector(theme),
+                ),
               ),
-            ),
 
-            // Content based on selected tab
-            SliverToBoxAdapter(
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.0, 0.3),
-                  end: Offset.zero,
-                ).animate(_chartAnimation),
-                child: _buildTabContent(theme),
+              // Content based on selected tab
+              SliverToBoxAdapter(
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.0, 0.3),
+                    end: Offset.zero,
+                  ).animate(_chartAnimation),
+                  child: _buildTabContent(theme),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -245,50 +218,11 @@ class _ProgressScreenState extends State<ProgressScreen>
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.secondary,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.primary.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.trending_up_rounded,
+              Text(
+                'Progress',
+                style: theme.textTheme.headlineMedium?.copyWith(
                   color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Progress Dashboard',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Track your fitness journey',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                          0.7,
-                        ),
-                      ),
-                    ),
-                  ],
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -335,7 +269,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        // color: theme.cardTheme.color,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2)),
         boxShadow: [
@@ -388,7 +322,7 @@ class _ProgressScreenState extends State<ProgressScreen>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        // color: theme.cardTheme.color,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -627,7 +561,7 @@ class _ProgressScreenState extends State<ProgressScreen>
           children: [
             Expanded(
               child: TextField(
-                controller: _weightController,
+                controller: _weightInputController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: "Current Weight (kg)",
@@ -691,7 +625,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                           showTitles: true,
                           reservedSize: 30,
                           getTitlesWidget: (value, meta) => Text(
-                            '${value.toInt() + 1}',
+                            '${value.toInt() + 1}', // Fixed: Expected an identifier
                             style: theme.textTheme.bodySmall,
                           ),
                         ),
@@ -1239,7 +1173,7 @@ class _ProgressScreenState extends State<ProgressScreen>
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        // color: theme.cardTheme.color,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(

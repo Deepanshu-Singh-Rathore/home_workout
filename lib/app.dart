@@ -9,6 +9,7 @@ import 'screens/plan_screen.dart';
 import 'screens/progress_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/workout_detail_screen.dart';
+import 'screens/upgrade_screen.dart';
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -20,7 +21,8 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   int _currentIndex = 0;
   late AnimationController _navigationController;
-  late Animation<double> _navigationAnimation;
+  bool _showUpgrade = true;
+  // ...existing code...
 
   final List<Workout> sampleWorkouts = [
     Workout(
@@ -96,7 +98,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: AppTheme.darkCardGrey,
+        systemNavigationBarColor: AppTheme.cardBackground,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
     );
@@ -108,9 +110,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       vsync: this,
     );
 
-    _navigationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _navigationController, curve: Curves.easeInOut),
-    );
+    // Removed unused _navigationAnimation assignment
 
     _navigationController.forward();
   }
@@ -134,7 +134,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     setState(() {
       final workout = _plan.firstWhere((w) => w.id == id);
       _plan.removeWhere((w) => w.id == id);
-      _showSnackBar('${workout.title} removed from plan', Colors.red);
+      _showSnackBar('${workout.title} removed from plan', AppTheme.errorRed);
     });
   }
 
@@ -193,41 +193,48 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
         plan: _plan,
         onAddPlaylist: _addPlaylistToPlan,
       ),
-      PlanScreen(plan: _plan, onRemove: _removeFromPlan),
+      PlanScreen(
+        plan: _plan,
+        onRemove: _removeFromPlan,
+        onFindWorkout: () => _onTabChanged(1),
+      ),
       const ProgressScreen(),
       const ProfileScreen(),
     ];
 
+    // Show upgrade screen first, then main navigation
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: Scaffold(
-        backgroundColor: AppTheme.backgroundBlack,
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.02, 0),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
+      home: _showUpgrade
+          ? const UpgradeScreen()
+          : Scaffold(
+              backgroundColor: AppTheme.darkBackground,
+              body: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.02, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: SafeArea(
+                  bottom: true,
+                  child: IndexedStack(
+                    key: ValueKey<int>(_currentIndex),
+                    index: _currentIndex,
+                    children: screens,
+                  ),
+                ),
               ),
-            );
-          },
-          child: SafeArea(
-            bottom: true,
-            child: IndexedStack(
-              key: ValueKey<int>(_currentIndex),
-              index: _currentIndex,
-              children: screens,
+              bottomNavigationBar: _buildBottomNavigationBar(),
             ),
-          ),
-        ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
-      ),
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/workout-detail':
@@ -267,7 +274,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   Widget _buildBottomNavigationBar() {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.darkCardGrey,
+        color: AppTheme.cardBackground,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(77),
@@ -310,6 +317,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     );
   }
 
+  void _dismissUpgrade() {
+    setState(() {
+      _showUpgrade = false;
+    });
+  }
+
   Widget _buildNavItem(
     int index,
     IconData activeIcon,
@@ -325,7 +338,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primaryIndigo.withAlpha(38)
+              ? AppTheme.primaryPurple.withAlpha(38)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -337,7 +350,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
               child: Icon(
                 isSelected ? activeIcon : inactiveIcon,
                 key: ValueKey('${index}_$isSelected'),
-                color: isSelected ? AppTheme.primaryIndigo : AppTheme.greyText,
+                size: 24,
+                color: isSelected
+                    ? AppTheme.primaryPurple
+                    : AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
@@ -346,7 +362,9 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppTheme.primaryIndigo : AppTheme.greyText,
+                color: isSelected
+                    ? AppTheme.primaryPurple
+                    : AppTheme.textSecondary,
               ),
               child: Text(label),
             ),

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_theme.dart';
@@ -9,7 +10,12 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _headerAnimation;
+  late final Animation<double> _cardAnimation;
+
   // Text Controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -19,16 +25,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _ageController = TextEditingController();
 
   // User Data
+  String _name = "Fitness Warrior";
+  String _email = "";
+  String _goal = "Transform Your Body";
+  double _height = 0;
+  double _weight = 0;
+  int _age = 0;
   String _activityLevel = 'Beginner';
+  String? _profileImagePath;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
     _loadUserData();
+  }
+
+  void _setupAnimations() {
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _headerAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+    );
+
+    _cardAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.3, 1.0, curve: Curves.elasticOut),
+    );
+
+    _controller.forward();
   }
 
   @override
   void dispose() {
+    _controller.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _goalController.dispose();
@@ -41,19 +75,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _nameController.text = prefs.getString('name') ?? 'Fitness Warrior';
-      _emailController.text = prefs.getString('email') ?? '';
-      _goalController.text = prefs.getString('goal') ?? 'Transform Your Body';
-      _heightController.text = (prefs.getDouble('height') ?? 0) > 0
-          ? prefs.getDouble('height')!.toString()
-          : '';
-      _weightController.text = (prefs.getDouble('weight') ?? 0) > 0
-          ? prefs.getDouble('weight')!.toString()
-          : '';
-      _ageController.text = (prefs.getInt('age') ?? 0) > 0
-          ? prefs.getInt('age')!.toString()
-          : '';
+      _name = prefs.getString('name') ?? 'Fitness Warrior';
+      _email = prefs.getString('email') ?? '';
+      _goal = prefs.getString('goal') ?? 'Transform Your Body';
+      _height = prefs.getDouble('height') ?? 0;
+      _weight = prefs.getDouble('weight') ?? 0;
+      _age = prefs.getInt('age') ?? 0;
       _activityLevel = prefs.getString('activity_level') ?? 'Beginner';
+      _profileImagePath = prefs.getString('profile_image');
+
+      _nameController.text = _name;
+      _emailController.text = _email;
+      _goalController.text = _goal;
+      _heightController.text = _height > 0 ? _height.toString() : '';
+      _weightController.text = _weight > 0 ? _weight.toString() : '';
+      _ageController.text = _age > 0 ? _age.toString() : '';
     });
   }
 
@@ -71,13 +107,124 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (weight != null) await prefs.setDouble('weight', weight);
     if (age != null) await prefs.setInt('age', age);
     await prefs.setString('activity_level', _activityLevel);
+
+    setState(() {
+      _name = _nameController.text;
+      _email = _emailController.text;
+      _goal = _goalController.text;
+      _height = height ?? 0;
+      _weight = weight ?? 0;
+      _age = age ?? 0;
+    });
+
+    _showSuccessSnackBar('Profile updated successfully!');
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(message),
+          ],
+        ),
+        backgroundColor: AppTheme.successGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  Future<void> _selectProfileImage() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackground,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textSecondary.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Choose Profile Picture',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library,
+                color: AppTheme.primaryPurple,
+              ),
+              title: const Text(
+                'Gallery',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              onTap: _pickImageFromGallery,
+            ),
+            if (_profileImagePath != null)
+              ListTile(
+                leading: const Icon(Icons.delete, color: AppTheme.errorRed),
+                title: const Text(
+                  'Remove Picture',
+                  style: TextStyle(color: AppTheme.errorRed),
+                ),
+                onTap: _removeProfileImage,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _pickImageFromGallery() {
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Gallery feature coming soon!'),
+        backgroundColor: AppTheme.primaryPurple,
+      ),
+    );
+  }
+
+  void _removeProfileImage() async {
+    Navigator.pop(context);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('profile_image');
+    setState(() {
+      _profileImagePath = null;
+    });
+    _showSuccessSnackBar('Profile picture removed');
+  }
+
+  void _handleActivityLevelChange(String level) {
+    setState(() {
+      _activityLevel = level;
+    });
+    _saveUserData();
   }
 
   double get _bmi {
-    final h = double.tryParse(_heightController.text);
-    final w = double.tryParse(_weightController.text);
-    if (h != null && h > 0 && w != null && w > 0) {
-      return w / ((h / 100) * (h / 100));
+    if (_height > 0 && _weight > 0) {
+      return _weight / ((_height / 100) * (_height / 100));
     }
     return 0;
   }
@@ -91,11 +238,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Color _getBmiColor(double bmi) {
-    if (bmi == 0) return AppTheme.greyText;
-    if (bmi < 18.5) return AppTheme.primaryIndigo;
-    if (bmi < 24.9) return Colors.green;
+    if (bmi == 0) return AppTheme.textSecondary;
+    if (bmi < 18.5) return AppTheme.primaryPurple;
+    if (bmi < 24.9) return AppTheme.successGreen;
     if (bmi < 29.9) return Colors.orange;
-    return Colors.red;
+    return AppTheme.errorRed;
   }
 
   @override
@@ -103,8 +250,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(title: const Text('My Profile')),
+        backgroundColor: AppTheme.darkBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text('My Profile'),
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 24),
@@ -128,20 +279,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileInfo() {
-    return _buildCard(
-      child: Column(
-        children: [
-          _buildTextField(
-            controller: _nameController,
-            label: 'Full Name',
-            icon: Icons.person_outline,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        color: AppTheme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              _buildProfilePicture(),
+              const SizedBox(height: 24),
+              _buildTextField(
+                controller: _nameController,
+                label: 'Full Name',
+                icon: Icons.person_outline,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _emailController,
+                label: 'Email',
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            controller: _emailController,
-            label: 'Email',
-            icon: Icons.email_outlined,
-            keyboardType: TextInputType.emailAddress,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfilePicture() {
+    return GestureDetector(
+      onTap: _selectProfileImage,
+      child: Stack(
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.primaryPurple.withOpacity(0.1),
+              image: _profileImagePath != null
+                  ? DecorationImage(
+                      image: AssetImage(_profileImagePath!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: _profileImagePath == null
+                ? Icon(
+                    Icons.person_outline,
+                    size: 60,
+                    color: AppTheme.primaryPurple,
+                  )
+                : null,
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryPurple,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.shadowColor.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.camera_alt,
+                size: 20,
+                color: AppTheme.textPrimary,
+              ),
+            ),
           ),
         ],
       ),
@@ -149,119 +364,160 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildBodyStats() {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Body Stats',
-            style: TextStyle(
-              color: AppTheme.whiteText,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        color: AppTheme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _heightController,
-                  label: 'Height (cm)',
-                  icon: Icons.height,
-                  keyboardType: TextInputType.number,
+              const Text(
+                'Body Stats',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextField(
-                  controller: _weightController,
-                  label: 'Weight (kg)',
-                  icon: Icons.monitor_weight_outlined,
-                  keyboardType: TextInputType.number,
-                ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _heightController,
+                      label: 'Height (cm)',
+                      icon: Icons.height,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _weightController,
+                      label: 'Weight (kg)',
+                      icon: Icons.monitor_weight_outlined,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            controller: _ageController,
-            label: 'Age',
-            icon: Icons.calendar_today,
-            keyboardType: TextInputType.number,
-          ),
-          if (_bmi > 0) ...[
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Icon(Icons.insights, color: _getBmiColor(_bmi)),
-                const SizedBox(width: 8),
-                Text(
-                  'BMI: ${_bmi.toStringAsFixed(1)}',
-                  style: TextStyle(
-                    color: _getBmiColor(_bmi),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '(${_getBmiStatus(_bmi)})',
-                  style: const TextStyle(
-                    color: AppTheme.greyText,
-                    fontSize: 14,
-                  ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _ageController,
+                label: 'Age',
+                icon: Icons.calendar_today,
+                keyboardType: TextInputType.number,
+              ),
+              if (_bmi > 0) ...[
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Icon(Icons.insights, color: _getBmiColor(_bmi)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'BMI: ${_bmi.toStringAsFixed(1)}',
+                      style: TextStyle(
+                        color: _getBmiColor(_bmi),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '(${_getBmiStatus(_bmi)})',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildGoals() {
-    return _buildCard(
-      child: _buildTextField(
-        controller: _goalController,
-        label: 'Fitness Goal',
-        icon: Icons.flag_outlined,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        color: AppTheme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Your Goals',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildTextField(
+                controller: _goalController,
+                label: 'Fitness Goal',
+                icon: Icons.flag_outlined,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildActivityLevels() {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Activity Level',
-            style: TextStyle(
-              color: AppTheme.whiteText,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        color: AppTheme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Activity Level',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildActivityOption(
+                'Beginner',
+                'New to fitness',
+                Icons.directions_walk,
+                _activityLevel == 'Beginner',
+              ),
+              const SizedBox(height: 12),
+              _buildActivityOption(
+                'Intermediate',
+                'Workout 2-3 times a week',
+                Icons.directions_run,
+                _activityLevel == 'Intermediate',
+              ),
+              const SizedBox(height: 12),
+              _buildActivityOption(
+                'Advanced',
+                'Workout 4+ times a week',
+                Icons.fitness_center,
+                _activityLevel == 'Advanced',
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          _buildActivityOption(
-            'Beginner',
-            'New to fitness',
-            Icons.directions_walk,
-          ),
-          const SizedBox(height: 12),
-          _buildActivityOption(
-            'Intermediate',
-            'Workout 2-3 times a week',
-            Icons.directions_run,
-          ),
-          const SizedBox(height: 12),
-          _buildActivityOption(
-            'Advanced',
-            'Workout 4+ times a week',
-            Icons.fitness_center,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -275,71 +531,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      style: const TextStyle(color: AppTheme.whiteText, fontSize: 16),
+      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppTheme.primaryIndigo, size: 24),
+        prefixIcon: Icon(icon, color: AppTheme.primaryPurple, size: 24),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 2),
+        ),
+        filled: true,
+        fillColor: AppTheme.inputBackground,
       ),
       onChanged: (_) => _saveUserData(),
     );
   }
 
-  Widget _buildActivityOption(String title, String subtitle, IconData icon) {
-    final isSelected = _activityLevel == title;
+  Widget _buildActivityOption(
+    String title,
+    String subtitle,
+    IconData icon,
+    bool isSelected,
+  ) {
     return InkWell(
-      onTap: () {
-        setState(() => _activityLevel = title);
-        _saveUserData();
-      },
+      onTap: () => _handleActivityLevelChange(title),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? AppTheme.primaryIndigo : AppTheme.borderGrey,
+            color: isSelected ? AppTheme.primaryPurple : AppTheme.borderColor,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? AppTheme.primaryIndigo.withOpacity(0.1) : null,
+          color: isSelected ? AppTheme.primaryPurple.withOpacity(0.1) : null,
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.primaryIndigo : AppTheme.greyText,
+              color: isSelected
+                  ? AppTheme.primaryPurple
+                  : AppTheme.textSecondary,
+              size: 24,
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: isSelected
-                      ? AppTheme.primaryIndigo
-                      : AppTheme.whiteText,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: isSelected
+                          ? AppTheme.primaryPurple
+                          : AppTheme.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
             if (isSelected)
               const Icon(
                 Icons.check_circle,
-                color: AppTheme.primaryIndigo,
+                color: AppTheme.primaryPurple,
                 size: 24,
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCard({required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        // color: Theme.of(context).cardTheme.color,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(padding: const EdgeInsets.all(24), child: child),
       ),
     );
   }

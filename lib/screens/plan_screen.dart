@@ -1,12 +1,17 @@
-//lib/screens/plan_screen.dart
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
 
 class PlanScreen extends StatefulWidget {
   final List<Workout> plan;
   final void Function(String) onRemove;
+  final VoidCallback onFindWorkout;
 
-  const PlanScreen({super.key, required this.plan, required this.onRemove});
+  const PlanScreen({
+    super.key,
+    required this.plan,
+    required this.onRemove,
+    required this.onFindWorkout,
+  });
 
   @override
   State<PlanScreen> createState() => _PlanScreenState();
@@ -461,10 +466,7 @@ class _PlanScreenState extends State<PlanScreen> with TickerProviderStateMixin {
             const SizedBox(height: 32),
 
             ElevatedButton.icon(
-              onPressed: () {
-                // Navigate to search
-                DefaultTabController.of(context).animateTo(1);
-              },
+              onPressed: widget.onFindWorkout,
               icon: const Icon(Icons.search_rounded),
               label: const Text('Find Workouts'),
               style: ElevatedButton.styleFrom(

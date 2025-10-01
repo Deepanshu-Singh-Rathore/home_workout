@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'config/app_theme.dart';
 import 'app.dart';
+import 'screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +16,7 @@ void main() async {
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: AppTheme.darkCardGrey,
+      systemNavigationBarColor: AppTheme.cardBackground,
       systemNavigationBarIconBrightness: Brightness.light,
       systemNavigationBarDividerColor: Colors.transparent,
     ),
@@ -42,7 +44,7 @@ class FitVibeApp extends StatelessWidget {
       title: 'FitVibe - Dark Mode Fitness',
       theme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
-      home: const AppWrapper(),
+      home: const OnboardingGate(),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
@@ -57,64 +59,50 @@ class FitVibeApp extends StatelessWidget {
   }
 }
 
-class AppWrapper extends StatefulWidget {
-  const AppWrapper({super.key});
+class OnboardingGate extends StatefulWidget {
+  const OnboardingGate({super.key});
 
   @override
-  State<AppWrapper> createState() => _AppWrapperState();
+  State<OnboardingGate> createState() => _OnboardingGateState();
 }
 
-class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
+class _OnboardingGateState extends State<OnboardingGate> {
+  bool _loading = true;
+  bool _showOnboarding = true;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _initializeApp();
+    _checkOnboarding();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _refreshSystemUI();
-    }
-  }
-
-  Future<void> _initializeApp() async {
-    await Future.delayed(const Duration(milliseconds: 100));
-    _refreshSystemUI();
+  Future<void> _checkOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    final done = prefs.getBool('onboarding_complete') ?? false;
+    setState(() {
+      _showOnboarding = !done;
+      _loading = false;
+    });
     FlutterNativeSplash.remove();
   }
 
-  void _refreshSystemUI() {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: AppTheme.darkCardGrey,
-        systemNavigationBarIconBrightness: Brightness.light,
-        systemNavigationBarDividerColor: Colors.transparent,
-      ),
-    );
+  void _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_complete', true);
+    setState(() {
+      _showOnboarding = false;
+    });
+    FlutterNativeSplash.remove();
   }
 
   @override
   Widget build(BuildContext context) {
-    return const AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: AppTheme.darkCardGrey,
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
-      child: MainApp(),
-    );
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_showOnboarding) {
+      return OnboardingScreen(onComplete: _completeOnboarding);
+    }
+    return const MainApp();
   }
 }

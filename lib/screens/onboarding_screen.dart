@@ -1,8 +1,8 @@
-//lib/screens/onboarding_screen.dart
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  final VoidCallback? onComplete;
+  const OnboardingScreen({super.key, this.onComplete});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -10,8 +10,6 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen>
     with TickerProviderStateMixin {
-  bool _isLoading = false;
-  String? _errorMessage;
   late AnimationController _animationController;
   late AnimationController _logoController;
   late AnimationController _particleController;
@@ -103,14 +101,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // Animated particles background
               _buildParticleBackground(),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
                 child: Column(
                   children: [
-                    // Logo and title section
                     Expanded(
                       flex: 3,
                       child: FadeTransition(
@@ -118,7 +113,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Animated logo
                             AnimatedBuilder(
                               animation: _logoAnimation,
                               builder: (context, child) {
@@ -158,237 +152,63 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                 );
                               },
                             ),
-
-                            const SizedBox(height: 50),
-
-                            // App title with typewriter effect
-                            SlideTransition(
-                              position: _slideAnimation,
-                              child: Column(
-                                children: [
-                                  ShaderMask(
-                                    shaderCallback: (bounds) => LinearGradient(
-                                      colors: [
-                                        Colors.white,
-                                        theme.colorScheme.primary,
-                                      ],
-                                    ).createShader(bounds),
-                                    child: Text(
-                                      'FitVibe',
-                                      style: theme.textTheme.headlineLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 48,
-                                            color: Colors.white,
-                                          ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 16),
-
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.2),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Transform Your Body, Elevate Your Mind',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 24),
+                            Text(
+                              'Welcome to FitVibe',
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
                               ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Your personal fitness companion. Get started and transform your body!',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
                       ),
                     ),
-
-                    // Sign-in section
                     Expanded(
-                      flex: 2,
-                      child: SlideTransition(
-                        position: _slideAnimation,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_errorMessage != null)
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                margin: const EdgeInsets.only(bottom: 16),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.red.withOpacity(0.3),
-                                  ),
-                                ),
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(color: Colors.red),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-
-                            // Enhanced Google sign-in button
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: double.infinity,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleSignIn,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black87,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: _isLoading
-                                    ? SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                theme.colorScheme.primary,
-                                              ),
-                                        ),
-                                      )
-                                    : Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(2),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                              gradient: const LinearGradient(
-                                                colors: [
-                                                  Colors.red,
-                                                  Colors.orange,
-                                                  Colors.yellow,
-                                                  Colors.green,
-                                                  Colors.blue,
-                                                  Colors.indigo,
-                                                ],
-                                              ),
-                                            ),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(2),
-                                              ),
-                                              child: const Text(
-                                                'G',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          const Text(
-                                            'Continue with Google',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // Guest mode button
-                            TextButton(
+                      flex: 1,
+                      child: Center(
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: ElevatedButton(
                               onPressed: () {
-                                // Add guest mode functionality
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/home',
-                                );
+                                widget.onComplete?.call();
                               },
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white.withOpacity(0.8),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 8,
+                                shadowColor: theme.colorScheme.primary
+                                    .withOpacity(0.5),
                               ),
                               child: const Text(
-                                'Continue as Guest',
+                                'Continue',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  decoration: TextDecoration.underline,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-
-                            const SizedBox(height: 32),
-
-                            // Terms and privacy
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
-                              child: RichText(
-                                textAlign: TextAlign.center,
-                                text: TextSpan(
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
-                                    fontSize: 12,
-                                  ),
-                                  children: [
-                                    const TextSpan(
-                                      text: 'By continuing, you agree to our ',
-                                    ),
-                                    TextSpan(
-                                      text: 'Terms of Service',
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                    const TextSpan(text: ' and '),
-                                    TextSpan(
-                                      text: 'Privacy Policy',
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -413,27 +233,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       },
     );
   }
-
-  void _handleSignIn() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      // Simulate authentication delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // For demo purposes, always succeed
-      // In real implementation, handle actual Google Sign-in here
-      Navigator.pushReplacementNamed(context, '/home');
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = "Sign-in failed. Please try again.";
-      });
-    }
-  }
 }
 
 class ParticlePainter extends CustomPainter {
@@ -451,7 +250,6 @@ class ParticlePainter extends CustomPainter {
       final x = (size.width * (i * 0.1 + animationValue * 0.5)) % size.width;
       final y = (size.height * (i * 0.05 + animationValue * 0.3)) % size.height;
       final radius = (i % 3 + 1) * 2.0;
-
       canvas.drawCircle(Offset(x, y), radius, paint);
     }
   }
