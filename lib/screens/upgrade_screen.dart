@@ -1,130 +1,142 @@
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
-import 'home_screen.dart';
 
 class UpgradeScreen extends StatelessWidget {
   const UpgradeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final plans = [
+      {
+        'title': 'Monthly',
+        'price': '\$18',
+        'icon': Icons.calendar_view_month,
+        'recommended': false,
+      },
+      {
+        'title': 'Yearly',
+        'price': '\$99',
+        'icon': Icons.calendar_today,
+        'recommended': true,
+      },
+      {
+        'title': 'Lifetime',
+        'price': '\$149',
+        'icon': Icons.star,
+        'recommended': false,
+      },
+    ];
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
-        backgroundColor: AppTheme.cardBackground,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('Upgrade'),
-        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Choose Your Plan',
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Choose Your Plan',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ...plans.map((plan) => _buildPlanCard(context, plan)).toList(),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // TEMP: Go back to app
+              },
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                  (states) => states.contains(MaterialState.pressed)
+                      ? Colors.purple
+                      : Colors.grey[800]!,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              _buildPlanCard('Monthly', '18', 'Billed monthly', Colors.purple),
-              const SizedBox(height: 20),
-              _buildPlanCard('Yearly', '99', 'Billed yearly', Colors.indigo),
-              const SizedBox(height: 20),
-              _buildPlanCard(
-                'Lifetime',
-                '149',
-                'One-time payment',
-                Colors.green,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          HomeScreen(onStartSearch: () {}, onStartPlan: () {}),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                padding: MaterialStateProperty.all<EdgeInsets>(
+                  const EdgeInsets.symmetric(vertical: 16),
+                ),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text(
-                  'Continue to App',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'No payment required. UI only.',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+              child: const Text('Continue to App'),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPlanCard(
-    String title,
-    String price,
-    String subtitle,
-    Color color,
-  ) {
+  Widget _buildPlanCard(BuildContext context, Map<String, dynamic> plan) {
+    final isRecommended = plan['recommended'] as bool;
     return Container(
+      margin: const EdgeInsets.only(bottom: 18),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
+        border: isRecommended
+            ? Border.all(color: AppTheme.primaryPurple, width: 2)
+            : null,
       ),
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: color,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+      child: ListTile(
+        leading: Icon(
+          plan['icon'],
+          color: isRecommended ? AppTheme.primaryPurple : Colors.white,
+          size: 32,
+        ),
+        title: Text(
+          plan['title'],
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                '\$$price',
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+        ),
+        subtitle: Text(
+          plan['price'],
+          style: TextStyle(
+            color: isRecommended ? AppTheme.primaryPurple : Colors.white70,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        trailing: isRecommended
+            ? Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-          ),
-        ],
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryPurple,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Recommended',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }

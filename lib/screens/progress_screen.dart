@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:math' as math;
+import '../config/app_theme.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -11,1220 +11,104 @@ class ProgressScreen extends StatefulWidget {
   State<ProgressScreen> createState() => _ProgressScreenState();
 }
 
-class _ProgressScreenState extends State<ProgressScreen>
-    with TickerProviderStateMixin {
-  final TextEditingController _weightInputController = TextEditingController();
-
+class _ProgressScreenState extends State<ProgressScreen> {
+  // Weight logs
   List<double> _weights = [];
-  List<int> _strengthTrend = [];
-  List<DateTime> _workoutDates = [];
-  Map<String, int> _workoutTypes = {};
-  List<double> _weeklyProgress = [];
-  Map<String, double> _bodyMetrics = {};
+  final TextEditingController _weightController = TextEditingController();
 
-  late AnimationController _headerController;
-  late AnimationController _chartController;
-  late Animation<double> _headerAnimation;
-  late Animation<double> _chartAnimation;
-
-  int _selectedTab = 0;
-  final List<String> _tabs = [
-    'Overview',
-    'Weight',
-    'Strength',
-    'Activity',
-    'Body',
+  // Progress data
+  final List<Map<String, dynamic>> _progressCards = [
+    {
+      'title': 'Workouts Completed',
+      'value': 42,
+      'icon': Icons.check_circle,
+      'color': AppTheme.successGreen,
+    },
+    {
+      'title': 'Total Minutes',
+      'value': 1230,
+      'icon': Icons.timer,
+      'color': Colors.orange,
+    },
+    {
+      'title': 'Calories Burned',
+      'value': 8900,
+      'icon': Icons.local_fire_department,
+      'color': AppTheme.errorRed,
+    },
+    {
+      'title': 'Strength Sessions',
+      'value': 18,
+      'icon': Icons.fitness_center,
+      'color': AppTheme.primaryPurple,
+    },
   ];
-
-  double _weight = 70.0;
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
-    _loadData(); // Changed _loadWeight to _loadData
-    _generateMockData();
-  }
-
-  Future<void> _saveWeight() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('weight', _weight);
-  }
-
-  void _setupAnimations() {
-    _headerController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _chartController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    _headerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
-    );
-
-    _chartAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _chartController, curve: Curves.elasticOut),
-    );
-
-    _headerController.forward();
-    Future.delayed(const Duration(milliseconds: 400), () {
-      _chartController.forward();
-    });
+    _loadWeights();
   }
 
   @override
   void dispose() {
-    _headerController.dispose();
-    _chartController.dispose();
-    _weightInputController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadWeights() async {
     final prefs = await SharedPreferences.getInstance();
-    final weightList = prefs.getStringList("weights") ?? [];
-    final strengthList = prefs.getStringList("strengthTrend") ?? [];
-    final workoutDatesList = prefs.getStringList("workoutDates") ?? [];
-
+    final weightStrings = prefs.getStringList('weight_logs') ?? [];
     setState(() {
-      _weights = weightList.map((e) => double.tryParse(e) ?? 0).toList();
-      _strengthTrend = strengthList.map((e) => int.tryParse(e) ?? 0).toList();
-      _workoutDates = workoutDatesList
-          .map((e) => DateTime.tryParse(e) ?? DateTime.now())
-          .toList();
+      _weights = weightStrings.map((w) => double.tryParse(w) ?? 0).toList();
     });
   }
 
-  void _generateMockData() {
-    // Generate mock data for demonstration
-    setState(() {
-      // Mock weights for the last 12 weeks
-      if (_weights.isEmpty) {
-        for (int i = 0; i < 12; i++) {
-          _weights.add(70.0 + math.Random().nextDouble() * 4 - 2);
-        }
-      }
-
-      // Mock workout types distribution
-      _workoutTypes = {
-        'Strength': 45,
-        'Cardio': 30,
-        'Yoga': 15,
-        'HIIT': 25,
-        'Stretching': 10,
-      };
-
-      // Mock weekly progress (hours per week for last 8 weeks)
-      _weeklyProgress = [2.5, 3.0, 2.8, 4.2, 3.7, 4.0, 3.5, 4.5];
-
-      // Mock body metrics
-      _bodyMetrics = {
-        'Body Fat': 15.2,
-        'Muscle Mass': 45.8,
-        'Water': 65.3,
-        'BMR': 1850,
-      };
-
-      // Generate some mock workout dates
-      if (_workoutDates.isEmpty) {
-        final now = DateTime.now();
-        for (int i = 30; i >= 0; i--) {
-          if (math.Random().nextBool()) {
-            _workoutDates.add(now.subtract(Duration(days: i)));
-          }
-        }
-      }
-    });
-  }
-
-  int get _weeklyWorkouts {
-    final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    return _workoutDates.where((date) => date.isAfter(weekStart)).length;
-  }
-
-  int get _monthlyWorkouts {
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month, 1);
-    return _workoutDates.where((date) => date.isAfter(monthStart)).length;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).padding.bottom + 16,
-          ),
-          child: CustomScrollView(
-            slivers: [
-              // Enhanced header
-              SliverToBoxAdapter(
-                child: FadeTransition(
-                  opacity: _headerAnimation,
-                  child: _buildHeader(theme),
-                ),
-              ),
-
-              // Tab selector
-              SliverToBoxAdapter(
-                child: FadeTransition(
-                  opacity: _headerAnimation,
-                  child: _buildTabSelector(theme),
-                ),
-              ),
-
-              // Content based on selected tab
-              SliverToBoxAdapter(
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0.0, 0.3),
-                    end: Offset.zero,
-                  ).animate(_chartAnimation),
-                  child: _buildTabContent(theme),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Future<void> _saveWeights() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'weight_logs',
+      _weights.map((w) => w.toString()).toList(),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withOpacity(0.1),
-            theme.colorScheme.secondary.withOpacity(0.05),
-            Colors.transparent,
-          ],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Progress',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Quick stats
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickStat(
-                  'This Week',
-                  '$_weeklyWorkouts workouts',
-                  Icons.calendar_view_week_rounded,
-                  Colors.blue,
-                  theme,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickStat(
-                  'This Month',
-                  '$_monthlyWorkouts workouts',
-                  Icons.calendar_month_rounded,
-                  Colors.green,
-                  theme,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickStat(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-    ThemeData theme,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabSelector(ThemeData theme) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: _tabs.asMap().entries.map((entry) {
-            final index = entry.key;
-            final tab = entry.value;
-            final isSelected = _selectedTab == index;
-
-            return GestureDetector(
-              onTap: () => setState(() => _selectedTab = index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                margin: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  tab,
-                  style: TextStyle(
-                    color: isSelected
-                        ? Colors.white
-                        : theme.textTheme.bodyMedium?.color,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabContent(ThemeData theme) {
-    switch (_selectedTab) {
-      case 0:
-        return _buildOverviewSection(theme);
-      case 1:
-        return _buildWeightSection(theme);
-      case 2:
-        return _buildStrengthSection(theme);
-      case 3:
-        return _buildActivitySection(theme);
-      case 4:
-        return _buildBodySection(theme);
-      default:
-        return Container();
+  void _addWeight() {
+    final value = double.tryParse(_weightController.text);
+    if (value != null && value > 0) {
+      setState(() {
+        _weights.add(value);
+        _weightController.clear();
+      });
+      _saveWeights();
     }
   }
 
-  Widget _buildOverviewSection(ThemeData theme) {
-    return Column(
-      children: [
-        // Weekly Progress Chart
-        _buildSectionCard(
-          title: "Weekly Activity Overview",
-          icon: Icons.timeline_rounded,
-          theme: theme,
-          children: [
-            SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: 6,
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        getTitlesWidget: (value, meta) => Text(
-                          '${value.toInt()}h',
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          const weeks = [
-                            'W1',
-                            'W2',
-                            'W3',
-                            'W4',
-                            'W5',
-                            'W6',
-                            'W7',
-                            'W8',
-                          ];
-                          return Text(
-                            value < weeks.length ? weeks[value.toInt()] : '',
-                            style: theme.textTheme.bodySmall,
-                          );
-                        },
-                      ),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: _weeklyProgress.asMap().entries.map((entry) {
-                    return BarChartGroupData(
-                      x: entry.key,
-                      barRods: [
-                        BarChartRodData(
-                          toY: entry.value,
-                          color: theme.colorScheme.primary,
-                          width: 20,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(4),
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // Workout Types Distribution
-        _buildSectionCard(
-          title: "Workout Distribution",
-          icon: Icons.pie_chart_rounded,
-          theme: theme,
-          children: [
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 40,
-                  sections: _workoutTypes.entries.map((entry) {
-                    final colors = [
-                      Colors.red,
-                      Colors.blue,
-                      Colors.green,
-                      Colors.orange,
-                      Colors.purple,
-                    ];
-                    final index = _workoutTypes.keys.toList().indexOf(
-                      entry.key,
-                    );
-                    final color = colors[index % colors.length];
-
-                    return PieChartSectionData(
-                      value: entry.value.toDouble(),
-                      title: '${entry.value}%',
-                      color: color,
-                      radius: 50,
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 16,
-              runSpacing: 8,
-              children: _workoutTypes.entries.map((entry) {
-                final colors = [
-                  Colors.red,
-                  Colors.blue,
-                  Colors.green,
-                  Colors.orange,
-                  Colors.purple,
-                ];
-                final index = _workoutTypes.keys.toList().indexOf(entry.key);
-                final color = colors[index % colors.length];
-
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(entry.key, style: theme.textTheme.bodySmall),
-                  ],
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-        SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-      ],
-    );
-  }
-
-  Widget _buildWeightSection(ThemeData theme) {
-    return _buildSectionCard(
-      title: "Weight Tracking",
-      icon: Icons.monitor_weight_rounded,
-      theme: theme,
-      children: [
-        // Weight input
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _weightInputController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: "Current Weight (kg)",
-                  prefixIcon: Icon(
-                    Icons.monitor_weight_rounded,
-                    color: theme.colorScheme.primary,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton(
-              onPressed: _saveWeight,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Icon(Icons.add),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 20),
-
-        // Weight chart
-        SizedBox(
-          height: 250,
-          child: _weights.isEmpty
-              ? _buildEmptyChart(
-                  'No weight data yet',
-                  'Add your first weight measurement',
-                )
-              : LineChart(
-                  LineChartData(
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      getDrawingHorizontalLine: (value) =>
-                          FlLine(color: theme.dividerColor, strokeWidth: 1),
-                    ),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40,
-                          getTitlesWidget: (value, meta) => Text(
-                            '${value.toInt()}',
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 30,
-                          getTitlesWidget: (value, meta) => Text(
-                            '${value.toInt() + 1}', // Fixed: Expected an identifier
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                      ),
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    lineBarsData: [
-                      LineChartBarData(
-                        isCurved: true,
-                        curveSmoothness: 0.3,
-                        spots: [
-                          for (int i = 0; i < _weights.length; i++)
-                            FlSpot(i.toDouble(), _weights[i]),
-                        ],
-                        color: theme.colorScheme.primary,
-                        barWidth: 4,
-                        dotData: FlDotData(
-                          show: true,
-                          getDotPainter: (spot, percent, barData, index) =>
-                              FlDotCirclePainter(
-                                radius: 6,
-                                color: Colors.white,
-                                strokeWidth: 3,
-                                strokeColor: theme.colorScheme.primary,
-                              ),
-                        ),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          color: theme.colorScheme.primary.withOpacity(0.1),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-        ),
-
-        if (_weights.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _buildWeightStats(theme),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildStrengthSection(ThemeData theme) {
-    return Column(
-      children: [
-        _buildSectionCard(
-          title: "Strength Progress",
-          icon: Icons.fitness_center_rounded,
-          theme: theme,
-          children: [
-            const Text(
-              'How did your last workout feel?',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildDifficultyButton(
-                  'Easier',
-                  Icons.trending_down_rounded,
-                  Colors.green,
-                  -1,
-                  theme,
-                ),
-                _buildDifficultyButton(
-                  'Same',
-                  Icons.remove_rounded,
-                  Colors.blue,
-                  0,
-                  theme,
-                ),
-                _buildDifficultyButton(
-                  'Harder',
-                  Icons.trending_up_rounded,
-                  Colors.red,
-                  1,
-                  theme,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: _strengthTrend.isEmpty
-                  ? _buildEmptyChart(
-                      'No strength data yet',
-                      'Record how your workouts feel',
-                    )
-                  : LineChart(
-                      LineChartData(
-                        gridData: FlGridData(
-                          show: true,
-                          drawVerticalLine: false,
-                          getDrawingHorizontalLine: (value) =>
-                              FlLine(color: theme.dividerColor, strokeWidth: 1),
-                        ),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 40,
-                              getTitlesWidget: (value, meta) {
-                                switch (value.toInt()) {
-                                  case -1:
-                                    return Text(
-                                      'Easier',
-                                      style: theme.textTheme.bodySmall,
-                                    );
-                                  case 0:
-                                    return Text(
-                                      'Same',
-                                      style: theme.textTheme.bodySmall,
-                                    );
-                                  case 1:
-                                    return Text(
-                                      'Harder',
-                                      style: theme.textTheme.bodySmall,
-                                    );
-                                  default:
-                                    return const Text('');
-                                }
-                              },
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 30,
-                              getTitlesWidget: (value, meta) => Text(
-                                '${value.toInt() + 1}',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                        ),
-                        borderData: FlBorderData(show: false),
-                        minY: -1.5,
-                        maxY: 1.5,
-                        lineBarsData: [
-                          LineChartBarData(
-                            isCurved: true,
-                            spots: [
-                              for (int i = 0; i < _strengthTrend.length; i++)
-                                FlSpot(
-                                  i.toDouble(),
-                                  _strengthTrend[i].toDouble(),
-                                ),
-                            ],
-                            color: theme.colorScheme.secondary,
-                            barWidth: 4,
-                            dotData: FlDotData(
-                              show: true,
-                              getDotPainter: (spot, percent, barData, index) =>
-                                  FlDotCirclePainter(
-                                    radius: 6,
-                                    color: Colors.white,
-                                    strokeWidth: 3,
-                                    strokeColor: theme.colorScheme.secondary,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildActivitySection(ThemeData theme) {
-    return Column(
-      children: [
-        _buildSectionCard(
-          title: "Activity Heatmap",
-          icon: Icons.calendar_view_month_rounded,
-          theme: theme,
-          children: [
-            SizedBox(height: 120, child: _buildActivityHeatmap(theme)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _buildSectionCard(
-          title: "Activity Stats",
-          icon: Icons.local_fire_department_rounded,
-          theme: theme,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'Total Workouts',
-                    '${_workoutDates.length}',
-                    Icons.fitness_center_rounded,
-                    Colors.orange,
-                    theme,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    'This Week',
-                    '$_weeklyWorkouts',
-                    Icons.calendar_view_week_rounded,
-                    Colors.blue,
-                    theme,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    'This Month',
-                    '$_monthlyWorkouts',
-                    Icons.calendar_month_rounded,
-                    Colors.green,
-                    theme,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _recordWorkout,
-              icon: const Icon(Icons.add_circle_outline),
-              label: const Text('Log Workout'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildBodySection(ThemeData theme) {
-    return Column(
-      children: [
-        _buildSectionCard(
-          title: "Body Composition",
-          icon: Icons.person_pin_rounded,
-          theme: theme,
-          children: [
-            SizedBox(
-              height: 250,
-              child: RadarChart(
-                RadarChartData(
-                  dataSets: [
-                    RadarDataSet(
-                      fillColor: theme.colorScheme.primary.withOpacity(0.2),
-                      borderColor: theme.colorScheme.primary,
-                      dataEntries: [
-                        const RadarEntry(value: 3),
-                        const RadarEntry(value: 4),
-                        const RadarEntry(value: 3.5),
-                        const RadarEntry(value: 4.2),
-                        const RadarEntry(value: 3.8),
-                      ],
-                    ),
-                  ],
-                  radarShape: RadarShape.polygon,
-                  tickCount: 5,
-                  titleTextStyle:
-                      theme.textTheme.bodySmall ?? const TextStyle(),
-                  getTitle: (index, angle) {
-                    const titles = [
-                      'Strength',
-                      'Cardio',
-                      'Flexibility',
-                      'Endurance',
-                      'Balance',
-                    ];
-                    return RadarChartTitle(text: titles[index], angle: angle);
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _buildSectionCard(
-          title: "Body Metrics",
-          icon: Icons.analytics_rounded,
-          theme: theme,
-          children: [
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              children: _bodyMetrics.entries.map((entry) {
-                final colors = [
-                  Colors.blue,
-                  Colors.green,
-                  Colors.orange,
-                  Colors.purple,
-                ];
-                final index = _bodyMetrics.keys.toList().indexOf(entry.key);
-                final color = colors[index % colors.length];
-
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: color.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        entry.key.contains('BMR')
-                            ? '${entry.value.toInt()}'
-                            : '${entry.value}%',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        entry.key,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: color.withOpacity(0.8),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildActivityHeatmap(ThemeData theme) {
-    const daysInMonth = 30;
-    final today = DateTime.now();
-
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        childAspectRatio: 1,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 2,
-      ),
-      itemCount: daysInMonth,
-      itemBuilder: (context, index) {
-        final date = today.subtract(Duration(days: daysInMonth - index - 1));
-        final hasWorkout = _workoutDates.any(
-          (d) =>
-              d.year == date.year && d.month == date.month && d.day == date.day,
-        );
-
-        return Container(
-          decoration: BoxDecoration(
-            color: hasWorkout
-                ? theme.colorScheme.primary
-                : theme.dividerColor.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Center(
-            child: Text(
-              '${date.day}',
-              style: TextStyle(
-                fontSize: 10,
-                color: hasWorkout
-                    ? Colors.white
-                    : theme.textTheme.bodySmall?.color,
-                fontWeight: hasWorkout ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _recordWorkout() async {
-    final today = DateTime.now();
+  void _deleteWeight(int index) {
     setState(() {
-      _workoutDates.add(today);
+      _weights.removeAt(index);
     });
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      "workoutDates",
-      _workoutDates.map((e) => e.toIso8601String()).toList(),
-    );
+    _saveWeights();
   }
 
-  Widget _buildWeightStats(ThemeData theme) {
-    final current = _weights.last;
-    final initial = _weights.first;
-    final change = current - initial;
-    final changeColor = change > 0
-        ? Colors.red
-        : change < 0
-        ? Colors.green
-        : Colors.grey;
-
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            'Current',
-            '${current.toStringAsFixed(1)} kg',
-            Icons.monitor_weight_rounded,
-            theme.colorScheme.primary,
-            theme,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            'Change',
-            '${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)} kg',
-            change > 0
-                ? Icons.trending_up
-                : change < 0
-                ? Icons.trending_down
-                : Icons.trending_flat,
-            changeColor,
-            theme,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDifficultyButton(
-    String label,
-    IconData icon,
-    Color color,
-    int value,
-    ThemeData theme,
-  ) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: ElevatedButton.icon(
-          onPressed: () => _recordDifficulty(value),
-          icon: Icon(icon, size: 20),
-          label: Text(label),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _recordDifficulty(int value) async {
-    setState(() {
-      _strengthTrend.add(value);
-    });
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      "strengthTrend",
-      _strengthTrend.map((e) => e.toString()).toList(),
-    );
-
-    final difficultyText = value == -1
-        ? 'easier'
-        : value == 0
-        ? 'same difficulty'
-        : 'harder';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Workout felt $difficultyText - recorded!'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  Widget _buildEmptyChart(String title, String subtitle) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.show_chart_rounded, size: 48, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required ThemeData theme,
-    required List<Widget> children,
-  }) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: theme.colorScheme.primary, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
+  // Update the _buildSummaryItem method to work with responsive layout:
+  Widget _buildSummaryItem(
     String title,
     String value,
     IconData icon,
     Color color,
-    ThemeData theme,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: Colors.grey[800],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -1232,19 +116,294 @@ class _ProgressScreenState extends State<ProgressScreen>
           const SizedBox(height: 8),
           Text(
             value,
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: color,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             title,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: color.withOpacity(0.7),
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.darkBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text('Progress'),
+      ),
+      body: SafeArea(
+        bottom: true,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).padding.bottom + 24,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Progress summary cards
+              Container(
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Progress Summary',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Use Column with Rows instead of horizontal ListView
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildSummaryItem(
+                                'Workouts',
+                                _progressCards[0]['value'].toString(),
+                                _progressCards[0]['icon'],
+                                _progressCards[0]['color'],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildSummaryItem(
+                                'Minutes',
+                                _progressCards[1]['value'].toString(),
+                                _progressCards[1]['icon'],
+                                _progressCards[1]['color'],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildSummaryItem(
+                                'Calories',
+                                _progressCards[2]['value'].toString(),
+                                _progressCards[2]['icon'],
+                                _progressCards[2]['color'],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildSummaryItem(
+                                'Strength',
+                                _progressCards[3]['value'].toString(),
+                                _progressCards[3]['icon'],
+                                _progressCards[3]['color'],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Weight logs section
+              const Text(
+                'Weight Logs',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Weight input
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _weightController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Enter weight (kg)',
+                        hintStyle: const TextStyle(color: Colors.white54),
+                        filled: true,
+                        fillColor: Colors.grey[800],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: _addWeight,
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (states) => states.contains(MaterialState.pressed)
+                            ? Colors.purple
+                            : Colors.grey[800]!,
+                      ),
+                      foregroundColor: MaterialStateProperty.all<Color>(
+                        Colors.white,
+                      ),
+                      padding: MaterialStateProperty.all<EdgeInsets>(
+                        const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                      ),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Weight logs list
+              if (_weights.isNotEmpty) ...[
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _weights.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[900],
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            '${_weights[index]} kg',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppTheme.errorRed,
+                            ),
+                            onPressed: () => _deleteWeight(index),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Weight trend chart
+                Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: LineChart(
+                    LineChartData(
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: List.generate(
+                            _weights.length,
+                            (i) => FlSpot(i.toDouble(), _weights[i]),
+                          ),
+                          isCurved: true,
+                          color: AppTheme.primaryPurple,
+                          barWidth: 3,
+                          dotData: const FlDotData(show: false),
+                        ),
+                      ],
+                      titlesData: const FlTitlesData(show: false),
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      backgroundColor: Colors.transparent,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                Container(
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Add weight entries to see trends',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

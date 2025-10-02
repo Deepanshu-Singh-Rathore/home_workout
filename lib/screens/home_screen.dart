@@ -1,16 +1,21 @@
 //lib/screens/home_screen.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_theme.dart';
 import '../models/workout.dart';
 import 'dart:math' as math;
+import 'profile_screen.dart'; // Import the ProfileScreen
+import 'upgrade_screen.dart'; // Import the UpgradeScreen
 
 class HomeScreen extends StatefulWidget {
+  final List<Workout> plan;
   final VoidCallback onStartSearch;
   final VoidCallback onStartPlan;
 
   const HomeScreen({
     super.key,
+    required this.plan,
     required this.onStartSearch,
     required this.onStartPlan,
   });
@@ -34,6 +39,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     "Eat a balanced diet for best results.",
   ];
 
+  final List<String> _motivations = [
+    "You're stronger than you think!",
+    "Every workout counts!",
+    "Consistency is key.",
+    "Push yourself, but listen to your body.",
+    "Small steps lead to big changes.",
+  ];
+  int _motivationIndex = 0;
+  Timer? _motivationTimer;
+
   // Animation Controllers
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -46,37 +61,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late Animation<double> _scaleAnimation;
   late Animation<double> _floatAnimation;
 
-  // Sample suggested workouts
-  final List<Workout> _suggestedWorkouts = [
-    Workout(
-      id: 'quick1',
-      title: 'Morning Energy Boost',
-      durationMinutes: 15,
-      thumbnailUrl: 'assets/thumbnails/morning.png',
-      videoUrl: 'https://example.com/morning.mp4',
-    ),
-    Workout(
-      id: 'quick2',
-      title: 'Quick Cardio Burn',
-      durationMinutes: 10,
-      thumbnailUrl: 'assets/thumbnails/cardio.png',
-      videoUrl: 'https://example.com/cardio.mp4',
-    ),
-    Workout(
-      id: 'quick3',
-      title: 'Power Stretch',
-      durationMinutes: 12,
-      thumbnailUrl: 'assets/thumbnails/stretch.png',
-      videoUrl: 'https://example.com/stretch.mp4',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
     _setupAnimations();
     _loadUserData();
     _startAnimations();
+    _startMotivationRotation();
   }
 
   void _setupAnimations() {
@@ -133,8 +124,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _floatController.repeat(reverse: true);
   }
 
+  void _startMotivationRotation() {
+    _motivationTimer?.cancel();
+    _motivationTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+      setState(() {
+        _motivationIndex = (_motivationIndex + 1) % _motivations.length;
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _motivationTimer?.cancel();
     _fadeController.dispose();
     _slideController.dispose();
     _scaleController.dispose();
@@ -153,14 +154,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) {
-      return "Good Morning";
-    } else if (hour < 17) {
-      return "Good Afternoon";
-    } else {
-      return "Good Evening";
-    }
+    // Get current time in India (IST - UTC+5:30)
+    final now = DateTime.now().toUtc().add(
+      const Duration(hours: 5, minutes: 30),
+    );
+    final hour = now.hour;
+
+    // 5 AM - 11:59 AM: Good morning
+    if (hour >= 5 && hour < 12) return 'Good morning';
+
+    // 12 PM - 4:59 PM: Good afternoon
+    if (hour >= 12 && hour < 17) return 'Good afternoon';
+
+    // 5 PM - 8:59 PM: Good evening
+    if (hour >= 17 && hour < 21) return 'Good evening';
+
+    // 9 PM - 4:59 AM: Good night (late evening/night/early morning)
+    return 'Good night';
   }
 
   String _bmiStatus(double bmi) {
@@ -248,6 +258,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                 const SizedBox(height: 32),
 
+                // Upgrade button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (_) => UpgradeScreen()));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text('Upgrade'),
+                ),
+
+                const SizedBox(height: 24),
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -264,20 +293,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _editProfile() {
-    // Profile editing functionality - you can expand this
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile editing coming soon!'),
-        backgroundColor: AppTheme.primaryPurple,
-      ),
-    );
+    Navigator.pop(context); // Close the bottom sheet
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => ProfileScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0x00000000),
       body: SafeArea(
         bottom: true,
         child: SingleChildScrollView(
@@ -285,11 +310,57 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 8),
               // Animated Greeting Section
               FadeTransition(
                 opacity: _fadeAnimation,
-                child: _buildGreetingSection(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${_getGreeting()}, $_name!',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _motivations[_motivationIndex],
+                            style: const TextStyle(
+                              color: Colors.purple,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Profile button in top right
+                    AnimatedBuilder(
+                      animation: _floatAnimation,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(
+                            0,
+                            math.sin(_floatAnimation.value * math.pi) * 3,
+                          ),
+                          child: _buildProfileAvatar(56),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(height: 24),
+              // Upcoming Workout Reminder
+              _buildUpcomingWorkoutReminder(),
               const SizedBox(height: 24),
               // Motivational Message
               Card(
@@ -378,11 +449,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: _buildActionButtons(),
               ),
               const SizedBox(height: 32),
-              // Suggested Workouts
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildSuggestedWorkouts(),
-              ),
+              // Suggested Workouts removed
+              // FadeTransition(
+              //   opacity: _fadeAnimation,
+              //   child: _buildSuggestedWorkouts(),
+              // ),
             ],
           ),
         ),
@@ -390,80 +461,50 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildGreetingSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildUpcomingWorkoutReminder() {
+    final nextWorkout = widget.plan.isNotEmpty ? widget.plan.first : null;
+    if (nextWorkout == null) return SizedBox.shrink();
+    return Card(
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 8,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
           children: [
-            Text(
-              _getGreeting(),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: AppTheme.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              _name,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.bold,
+            const Icon(Icons.access_time, color: Colors.purple, size: 32),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Upcoming: ${nextWorkout.title} (${nextWorkout.durationMinutes} min)',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
           ],
         ),
-        GestureDetector(
-          onTap: () => _openProfileMenu(context),
-          child: AnimatedBuilder(
-            animation: _floatAnimation,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(
-                  0,
-                  math.sin(_floatAnimation.value * math.pi * 2) * 5,
-                ),
-                child: _buildProfileAvatar(50),
-              );
-            },
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildProfileAvatar(double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size / 2),
-        gradient: const LinearGradient(
-          colors: [AppTheme.primaryPurple, AppTheme.secondaryPurple],
+    return GestureDetector(
+      onTap: () => _openProfileMenu(context),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.grey[800],
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryPurple.withOpacity(0.4),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        child: const Icon(Icons.person, color: Colors.white, size: 24),
       ),
-      child: _profileImagePath != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(
-                size / 2,
-              ), // Fixed: Removed const from here
-              child: Image.asset(
-                // Fixed: Removed const from here
-                _profileImagePath!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildDefaultAvatar(size);
-                },
-              ),
-            )
-          : _buildDefaultAvatar(size),
     );
   }
 
@@ -714,9 +755,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 icon: Icons.play_arrow_rounded,
                 label: "Start Workout",
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF886AFC), Color(0xFF18191E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  colors: [AppTheme.primaryPurple, AppTheme.secondaryPurple],
                 ),
               ),
             ),
@@ -775,169 +814,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSuggestedWorkouts() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.successGreen.withOpacity(0.2), // #10B981
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.recommend_rounded,
-                color: AppTheme.successGreen, // #10B981
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12), // Fixed: Removed const from here
-            const Text(
-              // Fixed: Removed const from here
-              'Suggested for You',
-              style: TextStyle(
-                color: AppTheme.textPrimary, // #FFFFFF
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 160,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _suggestedWorkouts.length,
-            itemBuilder: (context, index) {
-              final workout = _suggestedWorkouts[index];
-              return Container(
-                width: 120,
-                margin: EdgeInsets.only(
-                  right: index == _suggestedWorkouts.length - 1 ? 0 : 16,
-                ),
-                child: _buildSuggestedWorkoutCard(workout),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSuggestedWorkoutCard(Workout workout) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B), // Secondary background for cards
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F1629).withOpacity(0.2),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primaryPurple, AppTheme.primaryPurple],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Stack(
-                children: [
-                  const Center(
-                    child: Icon(
-                      Icons.play_circle_fill,
-                      size: 32,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${workout.durationMinutes}m',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // Fixed: Removed const from here
-                children: [
-                  // Fixed: Removed const from here
-                  Text(
-                    workout.title,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary, // #FFFFFF
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryPurple.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Quick Start',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppTheme.primaryPurple,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
